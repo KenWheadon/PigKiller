@@ -14,6 +14,10 @@ class PigClickerGame {
     this.activeElements = new Set(); // Track active elements for cleanup
     this.boundEventHandlers = new Map(); // Track bound event handlers
 
+    // Music system
+    this.bgMusic = null;
+    this.musicMuted = false;
+
     // Track kills by pig type for multiplier system
     this.pigKills = {
       runt: 0,
@@ -98,6 +102,7 @@ class PigClickerGame {
     this.loadGame();
     this.updateUI();
     this.bindEvents();
+    this.initMusic();
     this.startAutoClickers();
 
     // Remove loading screen
@@ -112,7 +117,68 @@ class PigClickerGame {
     window.addEventListener("beforeunload", () => this.cleanup());
   }
 
+  initMusic() {
+    this.bgMusic = document.getElementById("bg-music");
+    const muteBtn = document.getElementById("mute-btn");
+
+    if (this.bgMusic && muteBtn) {
+      // Set initial volume
+      this.bgMusic.volume = 0.3; // 30% volume - adjust as needed
+
+      // Try to play music (some browsers require user interaction first)
+      this.playMusic();
+
+      // Mute button handler
+      const muteHandler = () => this.toggleMusic();
+      muteBtn.addEventListener("click", muteHandler);
+      this.boundEventHandlers.set(muteBtn, muteHandler);
+
+      // Update button state
+      this.updateMuteButton();
+    }
+  }
+
+  playMusic() {
+    if (this.bgMusic && !this.musicMuted) {
+      this.bgMusic.play().catch((error) => {
+        // Auto-play failed (common in modern browsers)
+        console.log(
+          "Auto-play prevented. Music will start on first user interaction."
+        );
+
+        // Add one-time click handler to start music
+        const startMusic = () => {
+          if (!this.musicMuted) {
+            this.bgMusic.play();
+          }
+          document.removeEventListener("click", startMusic);
+        };
+        document.addEventListener("click", startMusic);
+      });
+    }
+  }
+
+  toggleMusic() {
+    if (!this.bgMusic) return;
+
+    this.musicMuted = !this.musicMuted;
+
+    if (this.musicMuted) {
+      this.bgMusic.pause();
+    } else {
+      this.bgMusic.play();
+    }
+
+    this.updateMuteButton();
+    this.saveGame(); // Save mute preference
+  }
+
   cleanup() {
+    // Pause music
+    if (this.bgMusic) {
+      this.bgMusic.pause();
+    }
+
     // Clear all intervals
     this.autoClickerIntervals.forEach((interval) => clearInterval(interval));
     this.autoClickerIntervals = [];
@@ -854,6 +920,7 @@ class PigClickerGame {
       autoClickerUpgrades: this.autoClickerUpgrades,
       autoClickerSpeed: this.autoClickerSpeed,
       pigKills: this.pigKills, // Save kill counters
+      musicMuted: this.musicMuted, // Save music preference
     };
 
     // Save to localStorage when available
@@ -888,6 +955,11 @@ class PigClickerGame {
               diamond: 0,
               legendary: 0,
             };
+          }
+
+          // Load music preference (default to unmuted)
+          if (typeof this.musicMuted === "undefined") {
+            this.musicMuted = false;
           }
 
           // Recreate pig if one exists

@@ -7,6 +7,17 @@
     <link rel="stylesheet" href="styles.css" />
   </head>
   <body>
+    <!-- Background Music -->
+    <audio id="bg-music" loop>
+      <source src="bg.mp3" type="audio/mpeg" />
+      <source src="bg.ogg" type="audio/ogg" />
+      <source src="bg.wav" type="audio/wav" />
+      Your browser does not support the audio element.
+    </audio>
+
+    <!-- Mute Button -->
+    <button id="mute-btn" class="mute-button" title="Toggle Music">🔊</button>
+
     <div class="loading">
       <div class="loading-spinner"></div>
     </div>
@@ -52,7 +63,7 @@
         </div>
 
         <div class="shop">
-          <h3 class="shop-header">&nbsp;&nbsp;🛒 Shop</h3>
+          <h3 class="shop-header">🛒 Shop</h3>
 
           <div class="shop-section">
             <div class="section-title">🐷 Pigs</div>

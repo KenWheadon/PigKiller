@@ -73,7 +73,7 @@ body::before {
 /* Header */
 .header {
   text-align: center;
-  margin-bottom: 1rem;
+  margin-bottom: 0.75rem;
   position: relative;
 }
 
@@ -110,7 +110,7 @@ h1 {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(125px, 1fr));
   gap: 1rem;
-  margin-bottom: 2rem;
+  margin-bottom: 0.5rem;
 }
 
 .stat-card {
@@ -118,7 +118,7 @@ h1 {
   backdrop-filter: blur(10px);
   border: 1px solid var(--glass-border);
   border-radius: 0.5rem;
-  padding: 1rem;
+  padding: 0.5rem;
   text-align: center;
   transition: all var(--transition-speed) ease;
   position: relative;
@@ -179,7 +179,7 @@ h1 {
   display: grid;
   grid-template-columns: 1fr 350px;
   gap: 2rem;
-  margin-bottom: 2rem;
+  margin-bottom: 0.5rem;
 }
 
 @media (max-width: 768px) {
@@ -494,7 +494,7 @@ h1 {
   background: var(--dark-surface);
   border: 2px solid transparent;
   border-radius: 0.5rem;
-  padding: 0.875rem;
+  padding: 0.5rem;
   margin-bottom: 0.5rem;
   cursor: pointer;
   transition: all var(--transition-speed) ease;
@@ -573,8 +573,8 @@ h1 {
 
 /* Auto Clickers */
 .auto-clickers {
-  margin-top: 0.75rem;
-  padding: 1rem;
+  margin-top: 1.5rem;
+  padding: 1.25rem;
   background: var(--dark-surface);
   border-radius: 0.5rem;
   border: 2px solid #3b82f6;
@@ -675,7 +675,7 @@ h1 {
   background: linear-gradient(135deg, #ef4444, #dc2626);
   color: white;
   padding: 2rem 3rem;
-  border-radius: 1rem;
+  border-radius: 0.5rem;
   font-size: 1.5rem;
   font-weight: 800;
   z-index: 1000;
@@ -737,7 +737,7 @@ h1 {
   font-size: 1.25rem;
   padding: 2rem;
   background: var(--dark-surface);
-  border-radius: 1rem;
+  border-radius: 0.5rem;
   border: 2px dashed var(--glass-border);
 }
 
@@ -776,7 +776,7 @@ h1 {
   }
 
   .stat-card {
-    padding: 0.5rem;
+    padding: 1rem;
   }
 
   .stat-value {
@@ -846,6 +846,44 @@ h1 {
 /* Smooth scrolling */
 html {
   scroll-behavior: smooth;
+}
+
+/* Mute Button */
+.mute-button {
+  position: fixed;
+  top: 20px;
+  left: 20px;
+  width: 50px;
+  height: 50px;
+  border: none;
+  border-radius: 50%;
+  background: var(--glass-bg);
+  backdrop-filter: blur(10px);
+  border: 2px solid var(--glass-border);
+  color: var(--text-primary);
+  font-size: 1.5rem;
+  cursor: pointer;
+  transition: all var(--transition-speed) ease;
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+.mute-button:hover {
+  transform: scale(1.1);
+  border-color: var(--primary-gold);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+}
+
+.mute-button:active {
+  transform: scale(0.95);
+}
+
+.mute-button.muted {
+  background: linear-gradient(135deg, #ef4444, #dc2626);
+  border-color: #ef4444;
 }
 
 /* Custom scrollbar */
