@@ -353,28 +353,54 @@
       }
 
       /* Dynamic pig states */
-      .pig.trash {
+      .pig.runt {
         border-color: #6b7280;
         color: #6b7280;
       }
 
-      .pig.basic {
+      .pig.piglet {
+        border-color: #f97316;
+        color: #f97316;
+      }
+
+      .pig.farm {
         border-color: var(--primary-pink);
         color: var(--primary-pink);
       }
 
-      .pig.premium {
+      .pig.prize {
         border-color: #8b5cf6;
         color: #8b5cf6;
       }
 
-      .pig.golden {
-        border-color: var(--primary-gold);
-        color: var(--primary-gold);
-        animation: goldenShine 3s ease-in-out infinite;
+      .pig.royal {
+        border-color: #3b82f6;
+        color: #3b82f6;
       }
 
-      @keyframes goldenShine {
+      .pig.diamond {
+        border-color: #06b6d4;
+        color: #06b6d4;
+        animation: diamondShine 2s ease-in-out infinite;
+      }
+
+      @keyframes diamondShine {
+        0%,
+        100% {
+          filter: brightness(1) drop-shadow(0 0 15px rgba(6, 182, 212, 0.5));
+        }
+        50% {
+          filter: brightness(1.2) drop-shadow(0 0 25px rgba(6, 182, 212, 0.7));
+        }
+      }
+
+      .pig.legendary {
+        border-color: var(--primary-gold);
+        color: var(--primary-gold);
+        animation: legendaryShine 3s ease-in-out infinite;
+      }
+
+      @keyframes legendaryShine {
         0%,
         100% {
           filter: brightness(1) drop-shadow(0 0 20px rgba(251, 191, 36, 0.5));
@@ -437,24 +463,51 @@
         border-radius: 1.5rem;
         padding: 0.75rem;
         height: fit-content;
+        max-height: 600px;
+        overflow-y: auto;
+        display: flex;
+        flex-direction: column;
       }
 
       .shop-header {
         font-size: 1.5rem;
         font-weight: 700;
         color: var(--primary-gold);
-        margin-bottom: 1.5rem;
+        margin-bottom: 1rem;
         display: flex;
         align-items: center;
         gap: 0.5rem;
+        position: sticky;
+        top: 0;
+        background: var(--glass-bg);
+        backdrop-filter: blur(10px);
+        z-index: 10;
+        padding: 0.5rem 0;
+      }
+
+      .shop-section {
+        margin-bottom: 1rem;
+      }
+
+      .section-title {
+        font-size: 1rem;
+        font-weight: 600;
+        color: var(--text-primary);
+        margin-bottom: 0.75rem;
+        padding: 0.5rem;
+        background: var(--dark-surface);
+        border-radius: 0.5rem;
+        text-align: center;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
       }
 
       .shop-item {
         background: var(--dark-surface);
         border: 2px solid transparent;
-        border-radius: 1rem;
-        padding: 1rem;
-        margin-bottom: 0.2rem;
+        border-radius: 0.75rem;
+        padding: 0.875rem;
+        margin-bottom: 0.5rem;
         cursor: pointer;
         transition: all var(--transition-speed) ease;
         position: relative;
@@ -543,6 +596,86 @@
         color: #3b82f6;
         font-weight: 600;
         line-height: 1.8;
+      }
+
+      /* Ribbon System */
+      .ribbon-display {
+        position: absolute;
+        top: -10px;
+        right: -10px;
+        background: linear-gradient(135deg, #ec4899, #be185d);
+        color: white;
+        border-radius: 50%;
+        width: 40px;
+        height: 40px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 0.875rem;
+        font-weight: 700;
+        box-shadow: 0 4px 12px rgba(236, 72, 153, 0.4);
+        animation: ribbonPulse 2s ease-in-out infinite;
+        z-index: 2;
+      }
+
+      @keyframes ribbonPulse {
+        0%,
+        100% {
+          transform: scale(1);
+          box-shadow: 0 4px 12px rgba(236, 72, 153, 0.4);
+        }
+        50% {
+          transform: scale(1.1);
+          box-shadow: 0 6px 20px rgba(236, 72, 153, 0.6);
+        }
+      }
+
+      .ribbon-effect {
+        position: fixed;
+        color: #ec4899;
+        font-weight: 800;
+        font-size: 2rem;
+        pointer-events: none;
+        animation: ribbonRise 2s ease-out forwards;
+        z-index: 200;
+        text-shadow: 0 0 20px rgba(236, 72, 153, 0.8);
+      }
+
+      @keyframes ribbonRise {
+        0% {
+          transform: translateY(0) scale(0.8);
+          opacity: 1;
+        }
+        50% {
+          transform: translateY(-30px) scale(1.2);
+          opacity: 1;
+        }
+        100% {
+          transform: translateY(-80px) scale(1);
+          opacity: 0;
+        }
+      }
+
+      .ribbon-sparkle {
+        position: fixed;
+        pointer-events: none;
+        width: 8px;
+        height: 8px;
+        background: #ec4899;
+        border-radius: 50%;
+        animation: sparkle 1.5s ease-out forwards;
+        z-index: 150;
+      }
+
+      @keyframes sparkle {
+        0% {
+          transform: translate(0, 0) scale(1);
+          opacity: 1;
+        }
+        100% {
+          transform: translate(var(--dx), var(--dy)) scale(0);
+          opacity: 0;
+        }
       }
 
       /* Effects */
@@ -779,6 +912,14 @@
           <div class="stat-label">Total Clicks</div>
           <div class="stat-value" id="total-clicks">0</div>
         </div>
+        <div class="stat-card">
+          <div class="stat-label">Ribbons Won</div>
+          <div class="stat-value" id="ribbons-won">0</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Ribbon Chance</div>
+          <div class="stat-value" id="ribbon-chance">1%</div>
+        </div>
       </div>
 
       <div class="game-grid">
@@ -791,64 +932,118 @@
         <div class="shop">
           <h3 class="shop-header">🛒 Shop</h3>
 
-          <div class="shop-item" id="buy-trash-pig">
-            <div class="item-header">
-              <div class="item-name">Runt Pig</div>
-              <div class="item-price">FREE!</div>
+          <div class="shop-section">
+            <div class="section-title">🐷 Pigs</div>
+
+            <div class="shop-item" id="buy-runt-pig">
+              <div class="item-header">
+                <div class="item-name">Runt Pig</div>
+                <div class="item-price">FREE!</div>
+              </div>
+              <div class="item-description">
+                A scrawny pig rescued from the trash. 1 coin start, +1 per
+                click.
+              </div>
             </div>
-            <div class="item-description">
-              A scrawny pig rescued from the trash. Starts at 1 coin, +1 per
-              click.
+
+            <div class="shop-item" id="buy-piglet-pig">
+              <div class="item-header">
+                <div class="item-name">Piglet</div>
+                <div class="item-price">15 coins</div>
+              </div>
+              <div class="item-description">
+                Young but healthy pig. 3 coins start, +2 per click.
+              </div>
+            </div>
+
+            <div class="shop-item" id="buy-farm-pig">
+              <div class="item-header">
+                <div class="item-name">Farm Pig</div>
+                <div class="item-price">50 coins</div>
+              </div>
+              <div class="item-description">
+                Standard farm pig. 8 coins start, +3 per click.
+              </div>
+            </div>
+
+            <div class="shop-item" id="buy-prize-pig">
+              <div class="item-header">
+                <div class="item-name">Prize Pig</div>
+                <div class="item-price">200 coins</div>
+              </div>
+              <div class="item-description">
+                Competition-ready pig. 25 coins start, +5 per click.
+              </div>
+            </div>
+
+            <div class="shop-item" id="buy-royal-pig">
+              <div class="item-header">
+                <div class="item-name">Royal Pig</div>
+                <div class="item-price">750 coins</div>
+              </div>
+              <div class="item-description">
+                Bred for royalty. 75 coins start, +10 per click.
+              </div>
+            </div>
+
+            <div class="shop-item" id="buy-diamond-pig">
+              <div class="item-header">
+                <div class="item-name">Diamond Pig</div>
+                <div class="item-price">2,500 coins</div>
+              </div>
+              <div class="item-description">
+                Rare crystalline pig. 200 coins start, +20 per click.
+              </div>
+            </div>
+
+            <div class="shop-item" id="buy-legendary-pig">
+              <div class="item-header">
+                <div class="item-name">Legendary Pig</div>
+                <div class="item-price">10,000 coins</div>
+              </div>
+              <div class="item-description">
+                Mythical golden pig. 600 coins start, +50 per click.
+              </div>
             </div>
           </div>
 
-          <div class="shop-item" id="buy-basic-pig">
-            <div class="item-header">
-              <div class="item-name">Basic Pig</div>
-              <div class="item-price">10 coins</div>
-            </div>
-            <div class="item-description">
-              Standard farm pig. Starts at 5 coins, +2 per click.
+          <div class="shop-section">
+            <div class="section-title">🎀 Ribbon Upgrades</div>
+
+            <div class="shop-item" id="buy-ribbon-upgrade">
+              <div class="item-header">
+                <div class="item-name">Ribbon Luck</div>
+                <div class="item-price" id="ribbon-upgrade-price">
+                  100 coins
+                </div>
+              </div>
+              <div class="item-description" id="ribbon-upgrade-desc">
+                Increase ribbon chance from 1% to 2% per click.
+              </div>
             </div>
           </div>
 
-          <div class="shop-item" id="buy-premium-pig">
-            <div class="item-header">
-              <div class="item-name">Premium Pig</div>
-              <div class="item-price">50 coins</div>
-            </div>
-            <div class="item-description">
-              Quality breed pig. Starts at 15 coins, +5 per click.
-            </div>
-          </div>
+          <div class="shop-section">
+            <div class="section-title">🤖 Automation</div>
 
-          <div class="shop-item" id="buy-golden-pig">
-            <div class="item-header">
-              <div class="item-name">Golden Pig</div>
-              <div class="item-price">200 coins</div>
+            <div class="shop-item" id="buy-auto-clicker">
+              <div class="item-header">
+                <div class="item-name">Auto Clicker</div>
+                <div class="item-price">25 coins</div>
+              </div>
+              <div class="item-description">
+                Automatically clicks your pig every 2 seconds.
+              </div>
             </div>
-            <div class="item-description">
-              Legendary golden pig. Starts at 50 coins, +10 per click.
-            </div>
-          </div>
 
-          <div class="shop-item" id="buy-auto-clicker">
-            <div class="item-header">
-              <div class="item-name">Auto Clicker</div>
-              <div class="item-price">100 coins</div>
-            </div>
-            <div class="item-description">
-              Automatically clicks your pig every 2 seconds.
-            </div>
-          </div>
-
-          <div class="shop-item" id="upgrade-auto-clicker">
-            <div class="item-header">
-              <div class="item-name">Upgrade Auto Clicker</div>
-              <div class="item-price">300 coins</div>
-            </div>
-            <div class="item-description">
-              Makes all auto clickers 25% faster.
+            <div class="shop-item" id="upgrade-auto-clicker">
+              <div class="item-header">
+                <div class="item-name">Upgrade Auto Clicker</div>
+                <div class="item-price">100 coins</div>
+              </div>
+              <div class="item-description">
+                Makes all auto clickers 25% faster.
+              </div>
             </div>
           </div>
 
@@ -869,6 +1064,8 @@
           this.pigsRaised = 0;
           this.pigsHarvested = 0;
           this.totalClicks = 0;
+          this.ribbonsWon = 0;
+          this.ribbonChance = 1; // 1% base chance
           this.currentPig = null;
           this.autoClickers = 0;
           this.autoClickerSpeed = 2000;
@@ -876,37 +1073,68 @@
           this.autoClickerIntervals = [];
 
           this.pigTypes = {
-            trash: {
+            runt: {
               cost: 0,
               startValue: 1,
               clickValue: 1,
-              image: "runt.png", // Updated to use custom art
+              image: "runt.png",
               emoji: "🐖",
-              className: "trash",
+              className: "runt",
+              name: "Runt Pig",
             },
-            basic: {
-              cost: 10,
-              startValue: 5,
+            piglet: {
+              cost: 15,
+              startValue: 3,
               clickValue: 2,
-              image: "pig.png", // Updated to use custom art
+              image: "piglet.png",
               emoji: "🐷",
-              className: "basic",
+              className: "piglet",
+              name: "Piglet",
             },
-            premium: {
+            farm: {
               cost: 50,
-              startValue: 15,
-              clickValue: 5,
-              image: "premium.png", // Updated to use custom art
-              emoji: "🐽",
-              className: "premium",
-            },
-            golden: {
-              cost: 200,
-              startValue: 50,
-              clickValue: 10,
-              image: "gold.png", // Updated to use custom art
+              startValue: 8,
+              clickValue: 3,
+              image: "pig.png",
               emoji: "🐷",
-              className: "golden",
+              className: "farm",
+              name: "Farm Pig",
+            },
+            prize: {
+              cost: 200,
+              startValue: 25,
+              clickValue: 5,
+              image: "prize.png",
+              emoji: "🐽",
+              className: "prize",
+              name: "Prize Pig",
+            },
+            royal: {
+              cost: 750,
+              startValue: 75,
+              clickValue: 10,
+              image: "premium.png",
+              emoji: "👑",
+              className: "royal",
+              name: "Royal Pig",
+            },
+            diamond: {
+              cost: 2500,
+              startValue: 200,
+              clickValue: 20,
+              image: "diamond.png",
+              emoji: "💎",
+              className: "diamond",
+              name: "Diamond Pig",
+            },
+            legendary: {
+              cost: 10000,
+              startValue: 600,
+              clickValue: 50,
+              image: "gold.png",
+              emoji: "⭐",
+              className: "legendary",
+              name: "Legendary Pig",
             },
           };
 
@@ -928,23 +1156,35 @@
         bindEvents() {
           // Shop items
           document
-            .getElementById("buy-trash-pig")
-            .addEventListener("click", () => this.buyPig("trash"));
+            .getElementById("buy-runt-pig")
+            .addEventListener("click", () => this.buyPig("runt"));
           document
-            .getElementById("buy-basic-pig")
-            .addEventListener("click", () => this.buyPig("basic"));
+            .getElementById("buy-piglet-pig")
+            .addEventListener("click", () => this.buyPig("piglet"));
           document
-            .getElementById("buy-premium-pig")
-            .addEventListener("click", () => this.buyPig("premium"));
+            .getElementById("buy-farm-pig")
+            .addEventListener("click", () => this.buyPig("farm"));
           document
-            .getElementById("buy-golden-pig")
-            .addEventListener("click", () => this.buyPig("golden"));
+            .getElementById("buy-prize-pig")
+            .addEventListener("click", () => this.buyPig("prize"));
+          document
+            .getElementById("buy-royal-pig")
+            .addEventListener("click", () => this.buyPig("royal"));
+          document
+            .getElementById("buy-diamond-pig")
+            .addEventListener("click", () => this.buyPig("diamond"));
+          document
+            .getElementById("buy-legendary-pig")
+            .addEventListener("click", () => this.buyPig("legendary"));
           document
             .getElementById("buy-auto-clicker")
             .addEventListener("click", () => this.buyAutoClicker());
           document
             .getElementById("upgrade-auto-clicker")
             .addEventListener("click", () => this.upgradeAutoClicker());
+          document
+            .getElementById("buy-ribbon-upgrade")
+            .addEventListener("click", () => this.buyRibbonUpgrade());
 
           // Auto-save every 10 seconds
           setInterval(() => this.saveGame(), 10000);
@@ -978,6 +1218,7 @@
           this.currentPig = {
             type: type,
             value: pigType.startValue,
+            ribbons: 0,
           };
 
           this.createPigElement();
@@ -1008,6 +1249,9 @@
                         )} coins</div>
                         <div class="pig ${pigType.className}" id="current-pig">
                             ${pigImageHTML}
+                            <div class="ribbon-display" id="ribbon-display" style="display: none;">
+                                🎀<span id="ribbon-count">0</span>
+                            </div>
                         </div>
                         <button class="kill-button" id="kill-pig-btn">
                             💀 HARVEST PIG 💀
@@ -1025,6 +1269,7 @@
 
           // Apply initial appearance
           this.updatePigAppearance();
+          this.updateRibbonDisplay();
         }
 
         clickPig(event) {
@@ -1033,6 +1278,11 @@
           const pigType = this.pigTypes[this.currentPig.type];
           this.currentPig.value += pigType.clickValue;
           this.totalClicks++;
+
+          // Check for ribbon
+          if (Math.random() * 100 < this.ribbonChance) {
+            this.awardRibbon(event);
+          }
 
           // Update appearance
           this.updatePigAppearance();
@@ -1049,6 +1299,121 @@
           }
 
           this.updateUI();
+        }
+
+        updateRibbonUpgradeShop() {
+          const upgradeCosts = [
+            100, 250, 500, 1000, 2000, 4000, 7500, 12500, 20000,
+          ];
+          const currentLevel = this.ribbonChance - 1;
+
+          const priceElement = document.getElementById("ribbon-upgrade-price");
+          const descElement = document.getElementById("ribbon-upgrade-desc");
+          const shopItem = document.getElementById("buy-ribbon-upgrade");
+
+          if (currentLevel >= 9) {
+            priceElement.textContent = "MAXED";
+            descElement.textContent = "Ribbon chance is at maximum (10%)!";
+            shopItem.classList.add("disabled");
+            shopItem.classList.remove("affordable");
+          } else {
+            const cost = upgradeCosts[currentLevel];
+            const nextLevel = this.ribbonChance + 1;
+            priceElement.textContent = this.formatNumber(cost) + " coins";
+            descElement.textContent = `Increase ribbon chance from ${this.ribbonChance}% to ${nextLevel}% per click.`;
+
+            shopItem.classList.toggle("affordable", this.coins >= cost);
+            shopItem.classList.remove("disabled");
+          }
+        }
+
+        buyRibbonUpgrade() {
+          const upgradeCosts = [
+            100, 250, 500, 1000, 2000, 4000, 7500, 12500, 20000,
+          ];
+          const currentLevel = this.ribbonChance - 1; // Convert 1-10% to 0-9 index
+
+          if (currentLevel >= 9) {
+            this.showNotification("Ribbon chance maxed out!", "info");
+            return;
+          }
+
+          const cost = upgradeCosts[currentLevel];
+          if (this.coins >= cost) {
+            this.coins -= cost;
+            this.ribbonChance++;
+            this.updateUI();
+            this.saveGame();
+            this.showNotification(
+              `Ribbon chance increased to ${this.ribbonChance}%!`,
+              "success"
+            );
+          } else {
+            this.showNotification("Not enough coins!", "error");
+          }
+        }
+
+        awardRibbon(event) {
+          this.currentPig.ribbons++;
+          this.ribbonsWon++;
+
+          // Apply 25% bonus to current value
+          const bonus = Math.floor(this.currentPig.value * 0.25);
+          this.currentPig.value += bonus;
+
+          // Show ribbon effect
+          this.showRibbonEffect(event, bonus);
+
+          // Create sparkles
+          this.createSparkles(event.clientX, event.clientY);
+
+          // Update ribbon display
+          this.updateRibbonDisplay();
+
+          // Haptic feedback
+          if (window.navigator.vibrate) {
+            window.navigator.vibrate([50, 30, 50]);
+          }
+        }
+
+        showRibbonEffect(event, bonus) {
+          const effect = document.createElement("div");
+          effect.className = "ribbon-effect";
+          effect.textContent = `🎀 +${this.formatNumber(bonus)} BONUS!`;
+          effect.style.left = event.clientX + "px";
+          effect.style.top = event.clientY + "px";
+
+          document.body.appendChild(effect);
+          setTimeout(() => effect.remove(), 2000);
+        }
+
+        createSparkles(x, y) {
+          for (let i = 0; i < 8; i++) {
+            const sparkle = document.createElement("div");
+            sparkle.className = "ribbon-sparkle";
+            sparkle.style.left = x + "px";
+            sparkle.style.top = y + "px";
+
+            const dx = (Math.random() - 0.5) * 120;
+            const dy = (Math.random() - 0.5) * 120;
+            sparkle.style.setProperty("--dx", dx + "px");
+            sparkle.style.setProperty("--dy", dy + "px");
+
+            document.body.appendChild(sparkle);
+            setTimeout(() => sparkle.remove(), 1500);
+          }
+        }
+
+        updateRibbonDisplay() {
+          const ribbonDisplay = document.getElementById("ribbon-display");
+          const ribbonCount = document.getElementById("ribbon-count");
+
+          if (this.currentPig && this.currentPig.ribbons > 0) {
+            ribbonDisplay.style.display = "flex";
+            ribbonCount.textContent = this.currentPig.ribbons;
+          } else if (ribbonDisplay) {
+            ribbonDisplay.style.display = "none";
+          }
         }
 
         updatePigAppearance() {
@@ -1198,7 +1563,7 @@
         }
 
         buyAutoClicker() {
-          const cost = 100;
+          const cost = 25;
           if (this.coins >= cost) {
             this.coins -= cost;
             this.autoClickers++;
@@ -1212,7 +1577,7 @@
         }
 
         upgradeAutoClicker() {
-          const cost = 300;
+          const cost = 100;
           if (this.coins >= cost && this.autoClickers > 0) {
             this.coins -= cost;
             this.autoClickerUpgrades++;
@@ -1312,6 +1677,10 @@
             this.formatNumber(this.pigsHarvested);
           document.getElementById("total-clicks").textContent =
             this.formatNumber(this.totalClicks);
+          document.getElementById("ribbons-won").textContent =
+            this.formatNumber(this.ribbonsWon);
+          document.getElementById("ribbon-chance").textContent =
+            this.ribbonChance + "%";
           document.getElementById("auto-clicker-count").textContent =
             this.autoClickers;
           document.getElementById("auto-clicker-speed").textContent =
@@ -1319,31 +1688,49 @@
 
           // Update shop affordability
           this.updateShopItem(
-            "buy-trash-pig",
-            this.pigTypes.trash.cost,
+            "buy-runt-pig",
+            this.pigTypes.runt.cost,
             !this.currentPig
           );
           this.updateShopItem(
-            "buy-basic-pig",
-            this.pigTypes.basic.cost,
+            "buy-piglet-pig",
+            this.pigTypes.piglet.cost,
             !this.currentPig
           );
           this.updateShopItem(
-            "buy-premium-pig",
-            this.pigTypes.premium.cost,
+            "buy-farm-pig",
+            this.pigTypes.farm.cost,
             !this.currentPig
           );
           this.updateShopItem(
-            "buy-golden-pig",
-            this.pigTypes.golden.cost,
+            "buy-prize-pig",
+            this.pigTypes.prize.cost,
             !this.currentPig
           );
-          this.updateShopItem("buy-auto-clicker", 100, true);
+          this.updateShopItem(
+            "buy-royal-pig",
+            this.pigTypes.royal.cost,
+            !this.currentPig
+          );
+          this.updateShopItem(
+            "buy-diamond-pig",
+            this.pigTypes.diamond.cost,
+            !this.currentPig
+          );
+          this.updateShopItem(
+            "buy-legendary-pig",
+            this.pigTypes.legendary.cost,
+            !this.currentPig
+          );
+          this.updateShopItem("buy-auto-clicker", 25, true);
           this.updateShopItem(
             "upgrade-auto-clicker",
-            300,
+            100,
             this.autoClickers > 0
           );
+
+          // Update ribbon upgrade
+          this.updateRibbonUpgradeShop();
         }
 
         updateShopItem(elementId, cost, canBuy) {
@@ -1360,6 +1747,8 @@
             pigsRaised: this.pigsRaised,
             pigsHarvested: this.pigsHarvested,
             totalClicks: this.totalClicks,
+            ribbonsWon: this.ribbonsWon,
+            ribbonChance: this.ribbonChance,
             currentPig: this.currentPig,
             autoClickers: this.autoClickers,
             autoClickerUpgrades: this.autoClickerUpgrades,
