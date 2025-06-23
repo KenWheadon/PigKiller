@@ -5,18 +5,22 @@ class PigClickerGame {
     this.pigsHarvested = 0;
     this.totalClicks = 0;
     this.ribbonsWon = 0;
-    this.ribbonChance = 1; // 1% base chance
+    this.ribbonChance = GAME_CONFIG.RIBBON.baseChance;
     this.currentPig = null;
     this.autoClickers = 0;
-    this.autoClickerSpeed = 2000;
+    this.autoClickerSpeed = GAME_CONFIG.AUTO_CLICKER.baseSpeed;
     this.autoClickerUpgrades = 0;
     this.autoClickerIntervals = [];
-    this.activeElements = new Set(); // Track active elements for cleanup
-    this.boundEventHandlers = new Map(); // Track bound event handlers
+    this.activeElements = new Set();
+    this.boundEventHandlers = new Map();
 
     // Music system
     this.bgMusic = null;
     this.musicMuted = false;
+
+    // Achievement system
+    this.achievements = {};
+    this.newAchievements = [];
 
     // Track kills by pig type for multiplier system
     this.pigKills = {
@@ -29,71 +33,10 @@ class PigClickerGame {
       legendary: 0,
     };
 
-    this.pigTypes = {
-      runt: {
-        baseCost: 0,
-        baseStartValue: 1,
-        baseClickValue: 1,
-        image: "runt.png",
-        emoji: "🐖",
-        className: "runt",
-        name: "Runt Pig",
-      },
-      piglet: {
-        baseCost: 25,
-        baseStartValue: 3,
-        baseClickValue: 2,
-        image: "piglet.png",
-        emoji: "🐷",
-        className: "piglet",
-        name: "Piglet",
-      },
-      farm: {
-        baseCost: 100,
-        baseStartValue: 8,
-        baseClickValue: 3,
-        image: "pig.png",
-        emoji: "🐷",
-        className: "farm",
-        name: "Farm Pig",
-      },
-      prize: {
-        baseCost: 500,
-        baseStartValue: 25,
-        baseClickValue: 5,
-        image: "prize.png",
-        emoji: "🐽",
-        className: "prize",
-        name: "Prize Pig",
-      },
-      royal: {
-        baseCost: 2500,
-        baseStartValue: 75,
-        baseClickValue: 10,
-        image: "premium.png",
-        emoji: "👑",
-        className: "royal",
-        name: "Royal Pig",
-      },
-      diamond: {
-        baseCost: 12500,
-        baseStartValue: 200,
-        baseClickValue: 20,
-        image: "diamond.png",
-        emoji: "💎",
-        className: "diamond",
-        name: "Diamond Pig",
-      },
-      legendary: {
-        baseCost: 75000,
-        baseStartValue: 600,
-        baseClickValue: 50,
-        image: "gold.png",
-        emoji: "⭐",
-        className: "legendary",
-        name: "Legendary Pig",
-      },
-    };
+    // Initialize achievements
+    Object.keys(GAME_CONFIG.ACHIEVEMENTS).forEach((key) => {
+      this.achievements[key] = false;
+    });
 
     this.init();
   }
@@ -103,6 +46,7 @@ class PigClickerGame {
     this.updateUI();
     this.bindEvents();
     this.initMusic();
+    this.initAchievements();
     this.startAutoClickers();
 
     // Remove loading screen
@@ -111,66 +55,13 @@ class PigClickerGame {
       if (loadingEl) {
         loadingEl.style.display = "none";
       }
-    }, 1500);
+    }, GAME_CONFIG.TIMING.loadingScreenDuration);
 
     // Cleanup on page unload
     window.addEventListener("beforeunload", () => this.cleanup());
-  }
 
-  initMusic() {
-    this.bgMusic = document.getElementById("bg-music");
-    const muteBtn = document.getElementById("mute-btn");
-
-    if (this.bgMusic && muteBtn) {
-      // Set initial volume
-      this.bgMusic.volume = 0.3; // 30% volume - adjust as needed
-
-      // Try to play music (some browsers require user interaction first)
-      this.playMusic();
-
-      // Mute button handler
-      const muteHandler = () => this.toggleMusic();
-      muteBtn.addEventListener("click", muteHandler);
-      this.boundEventHandlers.set(muteBtn, muteHandler);
-
-      // Update button state
-      this.updateMuteButton();
-    }
-  }
-
-  playMusic() {
-    if (this.bgMusic && !this.musicMuted) {
-      this.bgMusic.play().catch((error) => {
-        // Auto-play failed (common in modern browsers)
-        console.log(
-          "Auto-play prevented. Music will start on first user interaction."
-        );
-
-        // Add one-time click handler to start music
-        const startMusic = () => {
-          if (!this.musicMuted) {
-            this.bgMusic.play();
-          }
-          document.removeEventListener("click", startMusic);
-        };
-        document.addEventListener("click", startMusic);
-      });
-    }
-  }
-
-  toggleMusic() {
-    if (!this.bgMusic) return;
-
-    this.musicMuted = !this.musicMuted;
-
-    if (this.musicMuted) {
-      this.bgMusic.pause();
-    } else {
-      this.bgMusic.play();
-    }
-
-    this.updateMuteButton();
-    this.saveGame(); // Save mute preference
+    // Auto-save
+    setInterval(() => this.saveGame(), GAME_CONFIG.TIMING.saveInterval);
   }
 
   cleanup() {
@@ -212,69 +103,9 @@ class PigClickerGame {
     return null;
   }
 
-  bindEvents() {
-    // Shop items - using arrow functions to maintain 'this' context
-    const shopItems = [
-      { id: "buy-runt-pig", type: "runt" },
-      { id: "buy-piglet-pig", type: "piglet" },
-      { id: "buy-farm-pig", type: "farm" },
-      { id: "buy-prize-pig", type: "prize" },
-      { id: "buy-royal-pig", type: "royal" },
-      { id: "buy-diamond-pig", type: "diamond" },
-      { id: "buy-legendary-pig", type: "legendary" },
-    ];
-
-    shopItems.forEach(({ id, type }) => {
-      this.safeElementOperation(id, (element) => {
-        const handler = () => this.buyPig(type);
-        element.addEventListener("click", handler);
-        this.boundEventHandlers.set(element, handler);
-      });
-    });
-
-    // Other shop items
-    this.safeElementOperation("buy-auto-clicker", (element) => {
-      const handler = () => this.buyAutoClicker();
-      element.addEventListener("click", handler);
-      this.boundEventHandlers.set(element, handler);
-    });
-
-    this.safeElementOperation("upgrade-auto-clicker", (element) => {
-      const handler = () => this.upgradeAutoClicker();
-      element.addEventListener("click", handler);
-      this.boundEventHandlers.set(element, handler);
-    });
-
-    this.safeElementOperation("buy-ribbon-upgrade", (element) => {
-      const handler = () => this.buyRibbonUpgrade();
-      element.addEventListener("click", handler);
-      this.boundEventHandlers.set(element, handler);
-    });
-
-    // Auto-save every 10 seconds
-    setInterval(() => this.saveGame(), 10000);
-
-    // Keyboard shortcuts
-    const keyHandler = (e) => {
-      if (e.key === " " && this.currentPig) {
-        e.preventDefault();
-        const pigElement = document.getElementById("current-pig");
-        if (pigElement) {
-          const rect = pigElement.getBoundingClientRect();
-          this.clickPig({
-            clientX: rect.left + rect.width / 2,
-            clientY: rect.top + rect.height / 2,
-          });
-        }
-      }
-    };
-    document.addEventListener("keydown", keyHandler);
-    this.boundEventHandlers.set(document, keyHandler);
-  }
-
   // Calculate dynamic pig stats based on kills
   getPigStats(type) {
-    const baseStats = this.pigTypes[type];
+    const baseStats = GAME_CONFIG.PIG_TYPES[type];
     const kills = this.pigKills[type] || 0;
 
     return {
@@ -305,12 +136,16 @@ class PigClickerGame {
     };
 
     this.createPigElement();
+    this.updateRibbonCollection();
     this.updateUI();
     this.saveGame();
     this.showNotification(
       `${type.charAt(0).toUpperCase() + type.slice(1)} pig purchased!`,
       "success"
     );
+
+    // Check achievements
+    this.checkAchievements();
   }
 
   createPigElement() {
@@ -368,7 +203,7 @@ class PigClickerGame {
     this.updateRibbonDisplay();
   }
 
-  clickPig(event) {
+  clickPig(event, isAutoClick = false) {
     if (!this.currentPig) return;
 
     const pigStats = this.getPigStats(this.currentPig.type);
@@ -377,7 +212,7 @@ class PigClickerGame {
 
     // Check for ribbon
     if (Math.random() * 100 < this.ribbonChance) {
-      this.awardRibbon(event);
+      this.awardRibbon(event, isAutoClick);
     }
 
     // Update appearance
@@ -389,28 +224,218 @@ class PigClickerGame {
     // Create particles
     this.createParticles(event.clientX, event.clientY);
 
-    // Haptic feedback for mobile
-    if (window.navigator.vibrate) {
+    // Haptic feedback for mobile (only for real user clicks)
+    if (!isAutoClick && window.navigator.vibrate) {
       window.navigator.vibrate(10);
     }
 
     this.updateUI();
+    this.checkAchievements();
+  }
+
+  initAchievements() {
+    // Bind achievement drawer events
+    this.safeElementOperation("achievements-btn", (element) => {
+      const handler = () => this.showAchievements();
+      element.addEventListener("click", handler);
+      this.boundEventHandlers.set(element, handler);
+    });
+
+    this.safeElementOperation("close-achievements", (element) => {
+      const handler = () => this.hideAchievements();
+      element.addEventListener("click", handler);
+      this.boundEventHandlers.set(element, handler);
+    });
+
+    this.safeElementOperation("achievements-overlay", (element) => {
+      const handler = () => this.hideAchievements();
+      element.addEventListener("click", handler);
+      this.boundEventHandlers.set(element, handler);
+    });
+
+    this.updateAchievementsDisplay();
+  }
+
+  showAchievements() {
+    this.safeElementOperation("achievements-drawer", (drawer) => {
+      drawer.classList.add("open");
+    });
+    this.safeElementOperation("achievements-overlay", (overlay) => {
+      overlay.classList.add("visible");
+    });
+    // Remove new achievement indicator
+    this.newAchievements = [];
+    this.updateAchievementButton();
+  }
+
+  hideAchievements() {
+    this.safeElementOperation("achievements-drawer", (drawer) => {
+      drawer.classList.remove("open");
+    });
+    this.safeElementOperation("achievements-overlay", (overlay) => {
+      overlay.classList.remove("visible");
+    });
+  }
+
+  checkAchievements() {
+    const newlyUnlocked = [];
+
+    Object.entries(GAME_CONFIG.ACHIEVEMENTS).forEach(([key, achievement]) => {
+      if (this.achievements[key]) return; // Already unlocked
+
+      let unlocked = false;
+      const req = achievement.requirement;
+
+      switch (req.type) {
+        case "clicks":
+          unlocked = this.totalClicks >= req.value;
+          break;
+        case "harvested":
+          unlocked = this.pigsHarvested >= req.value;
+          break;
+        case "ribbons":
+          unlocked = this.ribbonsWon >= req.value;
+          break;
+        case "coins":
+          unlocked = this.coins >= req.value;
+          break;
+        case "autoClickers":
+          unlocked = this.autoClickers >= req.value;
+          break;
+        case "autoClickerUpgrades":
+          unlocked = this.autoClickerUpgrades >= req.value;
+          break;
+        case "pigKills":
+          unlocked = (this.pigKills[req.subtype] || 0) >= req.value;
+          break;
+        case "pigType":
+          unlocked = this.currentPig && this.currentPig.type === req.value;
+          break;
+      }
+
+      if (unlocked) {
+        this.achievements[key] = true;
+        newlyUnlocked.push(achievement);
+        this.newAchievements.push(key);
+      }
+    });
+
+    if (newlyUnlocked.length > 0) {
+      this.updateAchievementsDisplay();
+      this.updateAchievementButton();
+
+      // Show achievement notifications
+      newlyUnlocked.forEach((achievement, index) => {
+        setTimeout(() => {
+          this.showAchievementNotification(achievement);
+        }, index * 1000);
+      });
+    }
+  }
+
+  showAchievementNotification(achievement) {
+    const notification = document.createElement("div");
+    notification.className = "achievement-notification";
+    notification.innerHTML = `
+      <div style="font-size: 2rem; margin-bottom: 0.5rem;">${achievement.icon}</div>
+      <div style="font-size: 1.1rem; margin-bottom: 0.25rem;">Achievement Unlocked!</div>
+      <div style="font-size: 1rem; font-weight: 600;">${achievement.name}</div>
+    `;
+
+    document.body.appendChild(notification);
+    this.activeElements.add(notification);
+
+    setTimeout(() => {
+      this.removeElement(notification);
+    }, 3000);
+  }
+
+  updateAchievementsDisplay() {
+    this.safeElementOperation("achievements-content", (content) => {
+      content.innerHTML = "";
+
+      Object.entries(GAME_CONFIG.ACHIEVEMENTS).forEach(([key, achievement]) => {
+        const unlocked = this.achievements[key];
+
+        const item = document.createElement("div");
+        item.className = `achievement-item ${unlocked ? "unlocked" : "locked"}`;
+
+        item.innerHTML = `
+          <div class="achievement-icon">${achievement.icon}</div>
+          <div class="achievement-info">
+            <div class="achievement-name">${achievement.name}</div>
+            <div class="achievement-description">${achievement.description}</div>
+          </div>
+        `;
+
+        content.appendChild(item);
+      });
+    });
+  }
+
+  updateAchievementButton() {
+    this.safeElementOperation("achievements-btn", (button) => {
+      if (this.newAchievements.length > 0) {
+        button.classList.add("has-new");
+      } else {
+        button.classList.remove("has-new");
+      }
+    });
+  }
+
+  addRibbonToCollection() {
+    this.safeElementOperation("ribbon-collection", (collection) => {
+      const ribbon = document.createElement("div");
+      ribbon.className = "collected-ribbon";
+      ribbon.textContent = "🎀";
+
+      collection.appendChild(ribbon);
+      this.activeElements.add(ribbon);
+
+      // Auto-scroll to show new ribbon
+      collection.scrollLeft = collection.scrollWidth;
+    });
+  }
+
+  updateRibbonCollection() {
+    this.safeElementOperation("ribbon-collection", (collection) => {
+      const currentRibbons = this.currentPig ? this.currentPig.ribbons : 0;
+      const existingRibbons =
+        collection.querySelectorAll(".collected-ribbon").length;
+
+      // Clear collection if no pig or starting fresh
+      if (!this.currentPig) {
+        collection.innerHTML =
+          '<div class="ribbon-collection-empty">No ribbons yet - click to collect!</div>';
+        return;
+      }
+
+      // Remove empty message if it exists
+      const emptyMsg = collection.querySelector(".ribbon-collection-empty");
+      if (emptyMsg) {
+        emptyMsg.remove();
+      }
+
+      // Add new ribbons if current pig has more
+      for (let i = existingRibbons; i < currentRibbons; i++) {
+        this.addRibbonToCollection();
+      }
+    });
   }
 
   updateRibbonUpgradeShop() {
-    const upgradeCosts = [100, 250, 500, 1000, 2000, 4000, 7500, 12500, 20000];
     const currentLevel = this.ribbonChance - 1;
 
     this.safeElementOperation("ribbon-upgrade-price", (priceElement) => {
       this.safeElementOperation("ribbon-upgrade-desc", (descElement) => {
         this.safeElementOperation("buy-ribbon-upgrade", (shopItem) => {
-          if (currentLevel >= 9) {
+          if (currentLevel >= GAME_CONFIG.RIBBON.upgradeCosts.length) {
             priceElement.textContent = "MAXED";
-            descElement.textContent = "Ribbon chance is at maximum (10%)!";
+            descElement.textContent = `Ribbon chance is at maximum (${GAME_CONFIG.RIBBON.maxChance}%)!`;
             shopItem.classList.add("disabled");
             shopItem.classList.remove("affordable");
           } else {
-            const cost = upgradeCosts[currentLevel];
+            const cost = GAME_CONFIG.RIBBON.upgradeCosts[currentLevel];
             const nextLevel = this.ribbonChance + 1;
             priceElement.textContent = this.formatNumber(cost) + " coins";
             descElement.textContent = `Increase ribbon chance from ${this.ribbonChance}% to ${nextLevel}% per click.`;
@@ -424,15 +449,14 @@ class PigClickerGame {
   }
 
   buyRibbonUpgrade() {
-    const upgradeCosts = [100, 250, 500, 1000, 2000, 4000, 7500, 12500, 20000];
     const currentLevel = this.ribbonChance - 1;
 
-    if (currentLevel >= 9) {
+    if (currentLevel >= GAME_CONFIG.RIBBON.upgradeCosts.length) {
       this.showNotification("Ribbon chance maxed out!", "info");
       return;
     }
 
-    const cost = upgradeCosts[currentLevel];
+    const cost = GAME_CONFIG.RIBBON.upgradeCosts[currentLevel];
     if (this.coins >= cost) {
       this.coins -= cost;
       this.ribbonChance++;
@@ -447,12 +471,14 @@ class PigClickerGame {
     }
   }
 
-  awardRibbon(event) {
+  awardRibbon(event, isAutoClick = false) {
     this.currentPig.ribbons++;
     this.ribbonsWon++;
 
     // Apply 25% bonus to current value
-    const bonus = Math.floor(this.currentPig.value * 0.25);
+    const bonus = Math.floor(
+      this.currentPig.value * (GAME_CONFIG.RIBBON.bonusPercent / 100)
+    );
     this.currentPig.value += bonus;
 
     // Show ribbon effect
@@ -461,13 +487,16 @@ class PigClickerGame {
     // Create sparkles
     this.createSparkles(event.clientX, event.clientY);
 
-    // Update ribbon display
+    // Update ribbon display and collection
     this.updateRibbonDisplay();
+    this.updateRibbonCollection();
 
-    // Haptic feedback
-    if (window.navigator.vibrate) {
+    // Haptic feedback for mobile (only for real user clicks)
+    if (!isAutoClick && window.navigator.vibrate) {
       window.navigator.vibrate([50, 30, 50]);
     }
+
+    this.checkAchievements();
   }
 
   showRibbonEffect(event, bonus) {
@@ -482,11 +511,11 @@ class PigClickerGame {
 
     setTimeout(() => {
       this.removeElement(effect);
-    }, 2000);
+    }, GAME_CONFIG.TIMING.ribbonEffectDuration);
   }
 
   createSparkles(x, y) {
-    for (let i = 0; i < 8; i++) {
+    for (let i = 0; i < GAME_CONFIG.EFFECTS.sparkleCount; i++) {
       const sparkle = document.createElement("div");
       sparkle.className = "ribbon-sparkle";
       sparkle.style.left = x + "px";
@@ -502,7 +531,7 @@ class PigClickerGame {
 
       setTimeout(() => {
         this.removeElement(sparkle);
-      }, 1500);
+      }, GAME_CONFIG.TIMING.sparkleEffectDuration);
     }
   }
 
@@ -531,7 +560,11 @@ class PigClickerGame {
       if (!valueElement || !killButton) return;
 
       // Update value display
-      valueElement.textContent = `💰 ${this.formatNumber(value)} coins`;
+      const killBonus = this.pigKills[this.currentPig.type] || 0;
+      const bonusText = killBonus > 0 ? ` (+${killBonus} kill bonus!)` : "";
+      valueElement.textContent = `💰 ${this.formatNumber(
+        value
+      )} coins${bonusText}`;
 
       // Dynamic scaling based on value
       let scale = 1 + Math.min(value / 500, 0.5);
@@ -580,11 +613,11 @@ class PigClickerGame {
 
     setTimeout(() => {
       this.removeElement(effect);
-    }, 1000);
+    }, GAME_CONFIG.TIMING.effectDuration);
   }
 
   createParticles(x, y) {
-    for (let i = 0; i < 5; i++) {
+    for (let i = 0; i < GAME_CONFIG.EFFECTS.particleCount; i++) {
       const particle = document.createElement("div");
       particle.className = "particle";
       particle.style.left = x + "px";
@@ -600,7 +633,7 @@ class PigClickerGame {
 
       setTimeout(() => {
         this.removeElement(particle);
-      }, 2000);
+      }, GAME_CONFIG.TIMING.particleDuration);
     }
   }
 
@@ -616,7 +649,6 @@ class PigClickerGame {
 
     const value = this.currentPig.value;
     const pigType = this.currentPig.type;
-    const baseStats = this.pigTypes[pigType];
     const previousKills = this.pigKills[pigType] || 0;
 
     this.coins += value;
@@ -627,7 +659,6 @@ class PigClickerGame {
 
     // Calculate the bonus from kills (how much extra we got from previous kills)
     const killBonus = previousKills; // Each previous kill added +1 to start value
-    const baseValue = baseStats.baseStartValue;
 
     this.showDeathMessage(
       `💰 Earned ${this.formatNumber(value)} coins! 💰 ${
@@ -641,8 +672,12 @@ class PigClickerGame {
         '<div class="no-pig">🌾 Pig harvested! Buy a new one from the shop → 🛒</div>';
     });
 
+    // Clear ribbon collection
+    this.updateRibbonCollection();
+
     this.updateUI();
     this.saveGame();
+    this.checkAchievements();
   }
 
   showDeathMessage(message) {
@@ -660,12 +695,12 @@ class PigClickerGame {
       setTimeout(() => {
         this.removeElement(messageElement);
       }, 500);
-    }, 2000);
+    }, GAME_CONFIG.TIMING.deathMessageDuration);
   }
 
   createConfetti() {
     const colors = ["#4ade80", "#ec4899", "#fbbf24", "#3b82f6", "#8b5cf6"];
-    for (let i = 0; i < 30; i++) {
+    for (let i = 0; i < GAME_CONFIG.EFFECTS.confettiCount; i++) {
       setTimeout(() => {
         const confetti = document.createElement("div");
         confetti.className = "particle";
@@ -683,13 +718,13 @@ class PigClickerGame {
 
         setTimeout(() => {
           this.removeElement(confetti);
-        }, 2000);
-      }, i * 30);
+        }, GAME_CONFIG.TIMING.confettiDuration);
+      }, i * GAME_CONFIG.EFFECTS.confettiDelay);
     }
   }
 
   buyAutoClicker() {
-    const cost = 25;
+    const cost = GAME_CONFIG.AUTO_CLICKER.baseCost;
     if (this.autoClickers > 0) {
       this.showNotification(
         "You already have an auto-clicker! Use upgrades to make it faster.",
@@ -708,20 +743,33 @@ class PigClickerGame {
         "success"
       );
       this.restartAutoClickers();
+      this.checkAchievements();
     } else {
       this.showNotification("Not enough coins!", "error");
     }
   }
 
   upgradeAutoClicker() {
-    const cost = Math.floor(100 * Math.pow(1.5, this.autoClickerUpgrades)); // Escalating cost
+    const cost = Math.floor(
+      GAME_CONFIG.AUTO_CLICKER.upgradeBaseCost *
+        Math.pow(
+          GAME_CONFIG.AUTO_CLICKER.upgradeCostMultiplier,
+          this.autoClickerUpgrades
+        )
+    );
     if (this.coins >= cost && this.autoClickers > 0) {
       this.coins -= cost;
       this.autoClickerUpgrades++;
-      // Each upgrade makes auto-clickers 25% faster (reduces interval)
+      // Each upgrade makes auto-clickers faster
       this.autoClickerSpeed = Math.max(
-        200,
-        Math.floor(2000 / Math.pow(1.25, this.autoClickerUpgrades))
+        GAME_CONFIG.AUTO_CLICKER.minSpeed,
+        Math.floor(
+          GAME_CONFIG.AUTO_CLICKER.baseSpeed /
+            Math.pow(
+              GAME_CONFIG.AUTO_CLICKER.speedMultiplier,
+              this.autoClickerUpgrades
+            )
+        )
       );
       this.updateUI();
       this.saveGame();
@@ -732,6 +780,7 @@ class PigClickerGame {
         "success"
       );
       this.restartAutoClickers();
+      this.checkAchievements();
     } else {
       this.showNotification("Cannot upgrade!", "error");
     }
@@ -749,10 +798,15 @@ class PigClickerGame {
           const pigElement = document.getElementById("current-pig");
           if (pigElement) {
             const rect = pigElement.getBoundingClientRect();
-            this.clickPig({
-              clientX: rect.left + rect.width / 2 + (Math.random() - 0.5) * 50,
-              clientY: rect.top + rect.height / 2 + (Math.random() - 0.5) * 50,
-            });
+            this.clickPig(
+              {
+                clientX:
+                  rect.left + rect.width / 2 + (Math.random() - 0.5) * 50,
+                clientY:
+                  rect.top + rect.height / 2 + (Math.random() - 0.5) * 50,
+              },
+              true
+            ); // Pass true to indicate this is an auto-click
           }
         }
       }, this.autoClickerSpeed);
@@ -799,7 +853,7 @@ class PigClickerGame {
       setTimeout(() => {
         this.removeElement(notification);
       }, 300);
-    }, 2000);
+    }, GAME_CONFIG.TIMING.notificationDuration);
   }
 
   formatNumber(num) {
@@ -852,7 +906,7 @@ class PigClickerGame {
       this.safeElementOperation(id, (element) => {
         const descElement = element.querySelector(".item-description");
         if (descElement) {
-          const baseStats = this.pigTypes[type];
+          const baseStats = GAME_CONFIG.PIG_TYPES[type];
           const killBonus = killCount > 0 ? ` (+${killCount} kill bonus)` : "";
           const killCountText = killCount > 0 ? ` | ${killCount} killed` : "";
 
@@ -865,7 +919,11 @@ class PigClickerGame {
       });
     });
 
-    this.updateShopItem("buy-auto-clicker", 25, this.autoClickers === 0);
+    this.updateShopItem(
+      "buy-auto-clicker",
+      GAME_CONFIG.AUTO_CLICKER.baseCost,
+      this.autoClickers === 0
+    );
 
     // Hide auto-clicker purchase button if already owned
     this.safeElementOperation("buy-auto-clicker", (element) => {
@@ -878,7 +936,11 @@ class PigClickerGame {
 
     // Update auto-clicker upgrade with dynamic cost
     const autoClickerUpgradeCost = Math.floor(
-      100 * Math.pow(1.5, this.autoClickerUpgrades)
+      GAME_CONFIG.AUTO_CLICKER.upgradeBaseCost *
+        Math.pow(
+          GAME_CONFIG.AUTO_CLICKER.upgradeCostMultiplier,
+          this.autoClickerUpgrades
+        )
     );
     this.updateShopItem(
       "upgrade-auto-clicker",
@@ -919,8 +981,10 @@ class PigClickerGame {
       autoClickers: this.autoClickers,
       autoClickerUpgrades: this.autoClickerUpgrades,
       autoClickerSpeed: this.autoClickerSpeed,
-      pigKills: this.pigKills, // Save kill counters
-      musicMuted: this.musicMuted, // Save music preference
+      pigKills: this.pigKills,
+      musicMuted: this.musicMuted,
+      achievements: this.achievements,
+      newAchievements: this.newAchievements,
     };
 
     // Save to localStorage when available
@@ -962,15 +1026,159 @@ class PigClickerGame {
             this.musicMuted = false;
           }
 
+          // Load achievements (ensure all exist)
+          if (!this.achievements) {
+            this.achievements = {};
+          }
+          Object.keys(GAME_CONFIG.ACHIEVEMENTS).forEach((key) => {
+            if (typeof this.achievements[key] === "undefined") {
+              this.achievements[key] = false;
+            }
+          });
+
+          // Load new achievements indicator
+          if (!this.newAchievements) {
+            this.newAchievements = [];
+          }
+
           // Recreate pig if one exists
           if (this.currentPig) {
             this.createPigElement();
+            this.updateRibbonCollection();
           }
         }
       } catch (error) {
         console.warn("Could not load game:", error);
       }
     }
+  }
+
+  initMusic() {
+    this.bgMusic = document.getElementById("bg-music");
+    const muteBtn = document.getElementById("mute-btn");
+
+    if (this.bgMusic && muteBtn) {
+      // Set initial volume
+      this.bgMusic.volume = GAME_CONFIG.AUDIO.defaultVolume;
+
+      // Try to play music (some browsers require user interaction first)
+      this.playMusic();
+
+      // Mute button handler
+      const muteHandler = () => this.toggleMusic();
+      muteBtn.addEventListener("click", muteHandler);
+      this.boundEventHandlers.set(muteBtn, muteHandler);
+
+      // Update button state
+      this.updateMuteButton();
+    }
+  }
+
+  playMusic() {
+    if (this.bgMusic && !this.musicMuted) {
+      this.bgMusic.play().catch((error) => {
+        // Auto-play failed (common in modern browsers)
+        console.log(
+          "Auto-play prevented. Music will start on first user interaction."
+        );
+
+        // Add one-time click handler to start music
+        const startMusic = () => {
+          if (!this.musicMuted) {
+            this.bgMusic.play();
+          }
+          document.removeEventListener("click", startMusic);
+        };
+        document.addEventListener("click", startMusic);
+      });
+    }
+  }
+
+  toggleMusic() {
+    if (!this.bgMusic) return;
+
+    this.musicMuted = !this.musicMuted;
+
+    if (this.musicMuted) {
+      this.bgMusic.pause();
+    } else {
+      this.bgMusic.play();
+    }
+
+    this.updateMuteButton();
+    this.saveGame(); // Save mute preference
+  }
+
+  updateMuteButton() {
+    const muteBtn = document.getElementById("mute-btn");
+    if (muteBtn) {
+      if (this.musicMuted) {
+        muteBtn.textContent = "🔇";
+        muteBtn.classList.add("muted");
+        muteBtn.title = "Unmute Music";
+      } else {
+        muteBtn.textContent = "🔊";
+        muteBtn.classList.remove("muted");
+        muteBtn.title = "Mute Music";
+      }
+    }
+  }
+
+  bindEvents() {
+    // Shop items - using arrow functions to maintain 'this' context
+    const shopItems = [
+      { id: "buy-runt-pig", type: "runt" },
+      { id: "buy-piglet-pig", type: "piglet" },
+      { id: "buy-farm-pig", type: "farm" },
+      { id: "buy-prize-pig", type: "prize" },
+      { id: "buy-royal-pig", type: "royal" },
+      { id: "buy-diamond-pig", type: "diamond" },
+      { id: "buy-legendary-pig", type: "legendary" },
+    ];
+
+    shopItems.forEach(({ id, type }) => {
+      this.safeElementOperation(id, (element) => {
+        const handler = () => this.buyPig(type);
+        element.addEventListener("click", handler);
+        this.boundEventHandlers.set(element, handler);
+      });
+    });
+
+    // Other shop items
+    this.safeElementOperation("buy-auto-clicker", (element) => {
+      const handler = () => this.buyAutoClicker();
+      element.addEventListener("click", handler);
+      this.boundEventHandlers.set(element, handler);
+    });
+
+    this.safeElementOperation("upgrade-auto-clicker", (element) => {
+      const handler = () => this.upgradeAutoClicker();
+      element.addEventListener("click", handler);
+      this.boundEventHandlers.set(element, handler);
+    });
+
+    this.safeElementOperation("buy-ribbon-upgrade", (element) => {
+      const handler = () => this.buyRibbonUpgrade();
+      element.addEventListener("click", handler);
+      this.boundEventHandlers.set(element, handler);
+    });
+
+    // Keyboard shortcuts
+    const keyHandler = (e) => {
+      if (e.key === " " && this.currentPig) {
+        e.preventDefault();
+        const pigElement = document.getElementById("current-pig");
+        if (pigElement) {
+          const rect = pigElement.getBoundingClientRect();
+          this.clickPig({
+            clientX: rect.left + rect.width / 2,
+            clientY: rect.top + rect.height / 2,
+          });
+        }
+      }
+    };
+    document.addEventListener("keydown", keyHandler);
+    this.boundEventHandlers.set(document, keyHandler);
   }
 }
 

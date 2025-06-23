@@ -87,14 +87,14 @@ const GAME_CONFIG = {
 
   // Game Timing
   TIMING: {
-    saveInterval: 10000, // Auto-save every 10 seconds
+    saveInterval: 25000, // Auto-save every 10 seconds
     loadingScreenDuration: 1500, // 1.5 seconds
-    notificationDuration: 2000, // 2 seconds
+    notificationDuration: 1000, // 2 seconds
     effectDuration: 1000, // 1 second for click effects
     particleDuration: 2000, // 2 seconds for particles
     ribbonEffectDuration: 2000, // 2 seconds for ribbon effects
     sparkleEffectDuration: 1500, // 1.5 seconds for sparkles
-    deathMessageDuration: 2000, // 2 seconds for death messages
+    deathMessageDuration: 1000, // 2 seconds for death messages
     confettiDuration: 2000, // 2 seconds for confetti
   },
 
