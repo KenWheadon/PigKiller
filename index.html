@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Pig Farm Clicker</title>
+    <title>Pig Farm Clicker - Enhanced Edition</title>
     <style>
       * {
         margin: 0;
@@ -11,601 +11,851 @@
         box-sizing: border-box;
       }
 
+      :root {
+        --primary-green: #4ade80;
+        --primary-pink: #ec4899;
+        --primary-gold: #fbbf24;
+        --dark-bg: #0f172a;
+        --dark-surface: #1e293b;
+        --glass-bg: rgba(255, 255, 255, 0.05);
+        --glass-border: rgba(255, 255, 255, 0.1);
+        --text-primary: #f1f5f9;
+        --text-secondary: #94a3b8;
+        --shadow-color: rgba(0, 0, 0, 0.3);
+        --transition-speed: 0.3s;
+      }
+
       body {
-        font-family: "Courier New", monospace;
-        background: linear-gradient(135deg, #2d5016, #4a7c59);
-        color: #fff;
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+          sans-serif;
+        background: var(--dark-bg);
+        color: var(--text-primary);
         min-height: 100vh;
         overflow-x: hidden;
+        position: relative;
+      }
+
+      /* Animated background */
+      body::before {
+        content: "";
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: radial-gradient(
+            circle at 20% 50%,
+            rgba(76, 175, 80, 0.1) 0%,
+            transparent 50%
+          ),
+          radial-gradient(
+            circle at 80% 80%,
+            rgba(236, 72, 153, 0.1) 0%,
+            transparent 50%
+          ),
+          radial-gradient(
+            circle at 40% 20%,
+            rgba(251, 191, 36, 0.1) 0%,
+            transparent 50%
+          );
+        animation: backgroundShift 20s ease-in-out infinite;
+        z-index: -1;
+      }
+
+      @keyframes backgroundShift {
+        0%,
+        100% {
+          transform: scale(1) rotate(0deg);
+        }
+        50% {
+          transform: scale(1.1) rotate(5deg);
+        }
       }
 
       .container {
-        max-width: 1000px;
+        max-width: 1200px;
         margin: 0 auto;
-        padding: 20px;
+        padding: 1rem;
+      }
+
+      /* Header */
+      .header {
+        text-align: center;
+        margin-bottom: 1rem;
+        position: relative;
       }
 
       h1 {
-        text-align: center;
-        margin-bottom: 20px;
-        color: #ffeb3b;
-        text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
-        font-size: 2.5rem;
+        font-size: clamp(2rem, 5vw, 3.5rem);
+        font-weight: 800;
+        background: linear-gradient(
+          135deg,
+          var(--primary-pink),
+          var(--primary-gold)
+        );
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+        text-shadow: 0 0 30px rgba(236, 72, 153, 0.5);
+        margin-bottom: 0.5rem;
+        animation: titleGlow 3s ease-in-out infinite;
       }
 
-      .stats {
-        display: flex;
-        justify-content: center;
-        gap: 30px;
-        margin-bottom: 30px;
-        flex-wrap: wrap;
+      @keyframes titleGlow {
+        0%,
+        100% {
+          filter: brightness(1);
+        }
+        50% {
+          filter: brightness(1.2);
+        }
       }
 
-      .stat {
-        background: rgba(0, 0, 0, 0.3);
-        padding: 15px 25px;
-        border-radius: 10px;
-        border: 2px solid #4caf50;
+      .subtitle {
+        color: var(--text-secondary);
+        font-size: 1.1rem;
+        opacity: 0.8;
+      }
+
+      /* Stats Grid */
+      .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 1rem;
+        margin-bottom: 2rem;
+      }
+
+      .stat-card {
+        background: var(--glass-bg);
+        backdrop-filter: blur(10px);
+        border: 1px solid var(--glass-border);
+        border-radius: 1rem;
+        padding: 1rem;
         text-align: center;
+        transition: all var(--transition-speed) ease;
+        position: relative;
+        overflow: hidden;
+      }
+
+      .stat-card::before {
+        content: "";
+        position: absolute;
+        top: -50%;
+        left: -50%;
+        width: 200%;
+        height: 200%;
+        background: radial-gradient(
+          circle,
+          rgba(255, 255, 255, 0.1) 0%,
+          transparent 70%
+        );
+        transform: rotate(45deg);
+        transition: all 0.5s ease;
+        opacity: 0;
+      }
+
+      .stat-card:hover::before {
+        opacity: 1;
+        transform: rotate(45deg) translate(20%, 20%);
+      }
+
+      .stat-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+        border-color: rgba(255, 255, 255, 0.2);
+      }
+
+      .stat-label {
+        font-size: 0.875rem;
+        color: var(--text-secondary);
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        margin-bottom: 0.5rem;
       }
 
       .stat-value {
-        font-size: 1.5rem;
-        font-weight: bold;
-        color: #4caf50;
+        font-size: 2rem;
+        font-weight: 700;
+        color: var(--primary-green);
+        text-shadow: 0 0 20px rgba(74, 222, 128, 0.5);
+        transition: all var(--transition-speed) ease;
       }
 
-      .game-area {
+      .stat-value.coins {
+        color: var(--primary-gold);
+        text-shadow: 0 0 20px rgba(251, 191, 36, 0.5);
+      }
+
+      /* Game Grid */
+      .game-grid {
         display: grid;
-        grid-template-columns: 1fr 300px;
-        gap: 20px;
-        margin-bottom: 30px;
+        grid-template-columns: 1fr 350px;
+        gap: 2rem;
+        margin-bottom: 2rem;
       }
 
-      .farm {
-        background: rgba(0, 0, 0, 0.2);
-        border-radius: 15px;
-        padding: 40px;
-        border: 3px solid #8bc34a;
+      @media (max-width: 768px) {
+        .game-grid {
+          grid-template-columns: 1fr;
+          gap: 1.5rem;
+        }
+      }
+
+      /* Farm Area */
+      .farm-area {
+        background: var(--glass-bg);
+        backdrop-filter: blur(10px);
+        border: 1px solid var(--glass-border);
+        border-radius: 1.5rem;
+        padding: 3rem;
         min-height: 500px;
         display: flex;
-        flex-direction: column;
         align-items: center;
         justify-content: center;
+        position: relative;
+        overflow: hidden;
+      }
+
+      .farm-area::before {
+        content: "";
+        position: absolute;
+        top: -50%;
+        left: -50%;
+        width: 200%;
+        height: 200%;
+        background: radial-gradient(
+          circle at center,
+          rgba(74, 222, 128, 0.05) 0%,
+          transparent 50%
+        );
+        animation: farmPulse 4s ease-in-out infinite;
+      }
+
+      @keyframes farmPulse {
+        0%,
+        100% {
+          transform: scale(1);
+          opacity: 0.5;
+        }
+        50% {
+          transform: scale(1.2);
+          opacity: 0.8;
+        }
       }
 
       .pig-container {
         display: flex;
         flex-direction: column;
         align-items: center;
-        gap: 20px;
+        gap: 2rem;
+        z-index: 1;
       }
 
       .pig-value {
-        font-size: 2rem;
-        font-weight: bold;
-        color: #4caf50;
-        text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
-        margin-bottom: 10px;
-        transition: all 0.3s ease;
+        font-size: 2.5rem;
+        font-weight: 800;
+        text-shadow: 2px 2px 10px rgba(0, 0, 0, 0.5);
+        transition: all var(--transition-speed) ease;
+        animation: valueFloat 3s ease-in-out infinite;
       }
 
-      /* Dynamic value display */
-      .pig-value.value-low {
-        color: #4caf50;
-        font-size: 1.8rem;
-      }
-      .pig-value.value-medium {
-        color: #ffeb3b;
-        font-size: 2.2rem;
-        text-shadow: 0 0 10px rgba(255, 235, 59, 0.5);
-      }
-      .pig-value.value-high {
-        color: #ff9800;
-        font-size: 2.6rem;
-        text-shadow: 0 0 15px rgba(255, 152, 0, 0.7);
-      }
-      .pig-value.value-extreme {
-        color: #f44336;
-        font-size: 3rem;
-        text-shadow: 0 0 20px rgba(244, 67, 54, 0.8);
-        animation: value-glow 2s infinite;
-      }
-      .pig-value.value-insane {
-        color: #e91e63;
-        font-size: 3.5rem;
-        text-shadow: 0 0 25px rgba(233, 30, 99, 1);
-        animation: value-rainbow 1.5s infinite;
-      }
-
-      @keyframes value-glow {
+      @keyframes valueFloat {
         0%,
         100% {
-          text-shadow: 0 0 20px rgba(244, 67, 54, 0.8);
+          transform: translateY(0);
         }
         50% {
-          text-shadow: 0 0 30px rgba(244, 67, 54, 1);
-        }
-      }
-
-      @keyframes value-rainbow {
-        0% {
-          color: #f44336;
-          text-shadow: 0 0 25px rgba(244, 67, 54, 1);
-        }
-        25% {
-          color: #ff9800;
-          text-shadow: 0 0 25px rgba(255, 152, 0, 1);
-        }
-        50% {
-          color: #4caf50;
-          text-shadow: 0 0 25px rgba(76, 175, 80, 1);
-        }
-        75% {
-          color: #2196f3;
-          text-shadow: 0 0 25px rgba(33, 150, 243, 1);
-        }
-        100% {
-          color: #9c27b0;
-          text-shadow: 0 0 25px rgba(156, 39, 176, 1);
+          transform: translateY(-10px);
         }
       }
 
       .pig {
-        background: rgba(255, 255, 255, 0.1);
-        border: 4px solid #ff69b4;
+        width: 180px;
+        height: 180px;
         border-radius: 50%;
-        width: 150px;
-        height: 150px;
         display: flex;
         align-items: center;
         justify-content: center;
         cursor: pointer;
-        transition: all 0.3s ease;
+        transition: all var(--transition-speed) cubic-bezier(0.4, 0, 0.2, 1);
         position: relative;
         user-select: none;
-        box-shadow: 0 0 20px rgba(0, 0, 0, 0.3);
-        overflow: hidden;
+        background: var(--glass-bg);
+        backdrop-filter: blur(10px);
+        border: 3px solid var(--glass-border);
+        overflow: visible;
       }
 
-      .pig img {
-        width: 80%;
-        height: 80%;
-        object-fit: contain;
-        transition: all 0.3s ease;
-        filter: drop-shadow(2px 2px 4px rgba(0, 0, 0, 0.3));
+      .pig::before {
+        content: "";
+        position: absolute;
+        inset: -20px;
+        border-radius: 50%;
+        background: radial-gradient(
+          circle at center,
+          transparent 40%,
+          currentColor 70%,
+          transparent 71%
+        );
+        opacity: 0;
+        transition: all var(--transition-speed) ease;
+        animation: pigPulse 2s ease-in-out infinite;
+      }
+
+      @keyframes pigPulse {
+        0%,
+        100% {
+          transform: scale(0.9);
+          opacity: 0.3;
+        }
+        50% {
+          transform: scale(1.1);
+          opacity: 0.6;
+        }
       }
 
       .pig:hover {
-        transform: scale(1.05);
-        filter: brightness(1.2);
-      }
-
-      .pig:hover img {
-        transform: scale(1.1);
+        transform: scale(1.05) translateY(-5px);
       }
 
       .pig:active {
         transform: scale(0.95);
       }
 
+      .pig img {
+        width: 75%;
+        height: 75%;
+        object-fit: contain;
+        filter: drop-shadow(0 5px 10px rgba(0, 0, 0, 0.3));
+        transition: all var(--transition-speed) ease;
+        border-radius: 10px;
+      }
+
+      .pig:hover img {
+        transform: scale(1.1) rotate(5deg);
+      }
+
+      /* Fallback emoji styling */
+      .pig-emoji {
+        width: 70%;
+        height: 70%;
+        object-fit: contain;
+        filter: drop-shadow(0 5px 10px rgba(0, 0, 0, 0.3));
+        transition: all var(--transition-speed) ease;
+        font-size: 5rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+
+      .pig:hover .pig-emoji {
+        transform: scale(1.1) rotate(5deg);
+      }
+
+      /* Dynamic pig states */
       .pig.trash {
-        border-color: #8b4513;
-        background: rgba(139, 69, 19, 0.2);
+        border-color: #6b7280;
+        color: #6b7280;
       }
 
       .pig.basic {
-        border-color: #ff69b4;
-        background: rgba(255, 105, 180, 0.2);
+        border-color: var(--primary-pink);
+        color: var(--primary-pink);
       }
 
       .pig.premium {
-        border-color: #ff1493;
-        background: rgba(255, 20, 147, 0.2);
+        border-color: #8b5cf6;
+        color: #8b5cf6;
       }
 
       .pig.golden {
-        border-color: #ffd700;
-        background: rgba(255, 215, 0, 0.2);
+        border-color: var(--primary-gold);
+        color: var(--primary-gold);
+        animation: goldenShine 3s ease-in-out infinite;
       }
 
-      /* Dynamic size and glow based on value */
-      .pig.size-small {
-        width: 150px;
-        height: 150px;
-      }
-      .pig.size-medium {
-        width: 180px;
-        height: 180px;
-      }
-      .pig.size-large {
-        width: 220px;
-        height: 220px;
-      }
-      .pig.size-huge {
-        width: 260px;
-        height: 260px;
-      }
-      .pig.size-massive {
-        width: 300px;
-        height: 300px;
-      }
-
-      .pig.glow-none {
-        box-shadow: 0 0 20px rgba(0, 0, 0, 0.3);
-      }
-      .pig.glow-weak {
-        box-shadow: 0 0 30px rgba(76, 175, 80, 0.4);
-      }
-      .pig.glow-medium {
-        box-shadow: 0 0 40px rgba(255, 235, 59, 0.6);
-      }
-      .pig.glow-strong {
-        box-shadow: 0 0 50px rgba(255, 152, 0, 0.8);
-      }
-      .pig.glow-intense {
-        box-shadow: 0 0 60px rgba(244, 67, 54, 0.9);
-        animation: pulse-glow 2s infinite;
-      }
-
-      @keyframes pulse-glow {
+      @keyframes goldenShine {
         0%,
         100% {
-          box-shadow: 0 0 60px rgba(244, 67, 54, 0.9);
+          filter: brightness(1) drop-shadow(0 0 20px rgba(251, 191, 36, 0.5));
         }
         50% {
-          box-shadow: 0 0 80px rgba(244, 67, 54, 1);
+          filter: brightness(1.3) drop-shadow(0 0 30px rgba(251, 191, 36, 0.8));
         }
       }
 
+      /* Kill Button */
       .kill-button {
-        background: linear-gradient(45deg, #f44336, #d32f2f);
+        background: linear-gradient(135deg, #ef4444, #dc2626);
         border: none;
         color: white;
-        padding: 20px 40px;
-        border-radius: 10px;
+        padding: 1.25rem 2.5rem;
+        border-radius: 9999px;
         cursor: pointer;
-        font-size: 1.3rem;
-        font-weight: bold;
-        transition: all 0.3s ease;
+        font-size: 1.1rem;
+        font-weight: 700;
         text-transform: uppercase;
-        letter-spacing: 1px;
-        box-shadow: 0 4px 15px rgba(244, 67, 54, 0.3);
+        letter-spacing: 0.05em;
+        transition: all var(--transition-speed) ease;
+        box-shadow: 0 5px 20px rgba(239, 68, 68, 0.4);
         position: relative;
         overflow: hidden;
       }
 
+      .kill-button::before {
+        content: "";
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        width: 0;
+        height: 0;
+        background: rgba(255, 255, 255, 0.2);
+        border-radius: 50%;
+        transform: translate(-50%, -50%);
+        transition: width 0.6s ease, height 0.6s ease;
+      }
+
+      .kill-button:hover::before {
+        width: 300px;
+        height: 300px;
+      }
+
       .kill-button:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 6px 20px rgba(244, 67, 54, 0.4);
+        transform: translateY(-3px);
+        box-shadow: 0 8px 25px rgba(239, 68, 68, 0.5);
       }
 
       .kill-button:active {
-        transform: translateY(0);
+        transform: translateY(-1px);
       }
 
-      /* Dynamic kill button based on pig value */
-      .kill-button.value-low {
-        background: linear-gradient(45deg, #f44336, #d32f2f);
-        font-size: 1.1rem;
-      }
-
-      .kill-button.value-medium {
-        background: linear-gradient(45deg, #ff5722, #e64a19);
-        font-size: 1.2rem;
-        animation: subtle-pulse 3s infinite;
-      }
-
-      .kill-button.value-high {
-        background: linear-gradient(45deg, #ff9800, #f57c00);
-        font-size: 1.3rem;
-        animation: medium-pulse 2s infinite;
-      }
-
-      .kill-button.value-extreme {
-        background: linear-gradient(45deg, #ffc107, #ff8f00);
-        font-size: 1.4rem;
-        animation: intense-pulse 1.5s infinite;
-        box-shadow: 0 0 30px rgba(255, 193, 7, 0.6);
-      }
-
-      .kill-button.value-insane {
-        background: linear-gradient(45deg, #4caf50, #388e3c);
-        font-size: 1.5rem;
-        animation: insane-pulse 1s infinite;
-        box-shadow: 0 0 40px rgba(76, 175, 80, 0.8);
-      }
-
-      @keyframes subtle-pulse {
-        0%,
-        100% {
-          transform: scale(1);
-        }
-        50% {
-          transform: scale(1.02);
-        }
-      }
-
-      @keyframes medium-pulse {
-        0%,
-        100% {
-          transform: scale(1);
-        }
-        50% {
-          transform: scale(1.05);
-        }
-      }
-
-      @keyframes intense-pulse {
-        0%,
-        100% {
-          transform: scale(1);
-        }
-        50% {
-          transform: scale(1.08);
-        }
-      }
-
-      @keyframes insane-pulse {
-        0%,
-        100% {
-          transform: scale(1);
-        }
-        25% {
-          transform: scale(1.1);
-        }
-        50% {
-          transform: scale(1.05);
-        }
-        75% {
-          transform: scale(1.12);
-        }
-      }
-
-      .no-pig {
-        text-align: center;
-        color: #999;
-        font-size: 1.2rem;
-        margin: 40px 0;
-      }
-
+      /* Shop */
       .shop {
-        background: rgba(0, 0, 0, 0.3);
-        border-radius: 15px;
-        padding: 20px;
-        border: 3px solid #ff9800;
+        background: var(--glass-bg);
+        backdrop-filter: blur(10px);
+        border: 1px solid var(--glass-border);
+        border-radius: 1.5rem;
+        padding: 0.75rem;
+        height: fit-content;
+      }
+
+      .shop-header {
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: var(--primary-gold);
+        margin-bottom: 1.5rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
       }
 
       .shop-item {
-        background: rgba(0, 0, 0, 0.2);
-        border: 2px solid #666;
-        border-radius: 8px;
-        padding: 15px;
-        margin-bottom: 10px;
+        background: var(--dark-surface);
+        border: 2px solid transparent;
+        border-radius: 1rem;
+        padding: 1rem;
+        margin-bottom: 0.2rem;
         cursor: pointer;
-        transition: all 0.2s ease;
+        transition: all var(--transition-speed) ease;
+        position: relative;
+        overflow: hidden;
+      }
+
+      .shop-item::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(
+          90deg,
+          transparent,
+          rgba(255, 255, 255, 0.1),
+          transparent
+        );
+        transition: left 0.5s ease;
+      }
+
+      .shop-item:hover::before {
+        left: 100%;
       }
 
       .shop-item:hover {
-        border-color: #4caf50;
-        background: rgba(76, 175, 80, 0.1);
+        transform: translateX(-5px);
+        border-color: var(--primary-green);
+        box-shadow: 0 5px 20px rgba(0, 0, 0, 0.2);
       }
 
       .shop-item.affordable {
-        border-color: #4caf50;
-      }
-
-      .shop-item.affordable:hover {
-        background: rgba(76, 175, 80, 0.2);
+        border-color: var(--primary-green);
+        background: linear-gradient(
+          135deg,
+          var(--dark-surface),
+          rgba(74, 222, 128, 0.1)
+        );
       }
 
       .shop-item.disabled {
         opacity: 0.5;
         cursor: not-allowed;
+        transform: none !important;
+      }
+
+      .item-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 0.5rem;
       }
 
       .item-name {
-        font-weight: bold;
-        color: #ffeb3b;
-        margin-bottom: 5px;
+        font-weight: 700;
+        color: var(--text-primary);
+        font-size: 1.1rem;
       }
 
       .item-price {
-        color: #4caf50;
-        font-weight: bold;
+        color: var(--primary-gold);
+        font-weight: 700;
+        font-size: 0.9rem;
+        background: rgba(251, 191, 36, 0.1);
+        padding: 0.25rem 0.75rem;
+        border-radius: 9999px;
       }
 
       .item-description {
-        font-size: 0.9rem;
-        color: #ccc;
-        margin-top: 5px;
+        font-size: 0.875rem;
+        color: var(--text-secondary);
+        line-height: 1.5;
       }
 
+      /* Auto Clickers */
       .auto-clickers {
-        margin-top: 20px;
-        padding: 15px;
-        background: rgba(0, 0, 0, 0.2);
-        border-radius: 10px;
-        border: 2px solid #2196f3;
+        margin-top: 1.5rem;
+        padding: 1.25rem;
+        background: var(--dark-surface);
+        border-radius: 1rem;
+        border: 2px solid #3b82f6;
       }
 
       .auto-clicker-status {
-        color: #2196f3;
-        font-weight: bold;
-        margin-bottom: 10px;
+        color: #3b82f6;
+        font-weight: 600;
+        line-height: 1.8;
       }
 
+      /* Effects */
       .death-message {
         position: fixed;
         top: 50%;
         left: 50%;
-        transform: translate(-50%, -50%);
-        background: rgba(244, 67, 54, 0.95);
+        transform: translate(-50%, -50%) scale(0.8);
+        background: linear-gradient(135deg, #ef4444, #dc2626);
         color: white;
-        padding: 30px;
-        border-radius: 15px;
-        border: 3px solid #f44336;
+        padding: 2rem 3rem;
+        border-radius: 1rem;
         font-size: 1.5rem;
-        font-weight: bold;
+        font-weight: 800;
         z-index: 1000;
-        animation: deathFade 3s ease-out forwards;
-        pointer-events: none;
+        animation: deathPop 0.5s ease-out forwards;
+        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
         text-align: center;
-        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
       }
 
-      @keyframes deathFade {
+      @keyframes deathPop {
         0% {
-          opacity: 1;
           transform: translate(-50%, -50%) scale(0.8);
+          opacity: 0;
         }
-        20% {
-          opacity: 1;
+        50% {
           transform: translate(-50%, -50%) scale(1.1);
         }
-        80% {
-          opacity: 1;
-          transform: translate(-50%, -50%) scale(1);
-        }
         100% {
-          opacity: 0;
+          transform: translate(-50%, -50%) scale(1);
+          opacity: 1;
+        }
+      }
+
+      .death-fade-out {
+        animation: deathFadeOut 0.5s ease-out forwards;
+      }
+
+      @keyframes deathFadeOut {
+        to {
           transform: translate(-50%, -50%) scale(0.8);
+          opacity: 0;
         }
       }
 
       .click-effect {
-        position: absolute;
-        color: #4caf50;
-        font-weight: bold;
-        font-size: 1.2rem;
+        position: fixed;
+        color: var(--primary-green);
+        font-weight: 800;
+        font-size: 1.5rem;
         pointer-events: none;
-        animation: clickFade 1s ease-out forwards;
+        animation: clickRise 1s ease-out forwards;
+        z-index: 100;
+        text-shadow: 0 0 10px currentColor;
+      }
+
+      @keyframes clickRise {
+        0% {
+          transform: translateY(0) scale(1);
+          opacity: 1;
+        }
+        100% {
+          transform: translateY(-50px) scale(1.5);
+          opacity: 0;
+        }
+      }
+
+      .no-pig {
+        text-align: center;
+        color: var(--text-secondary);
+        font-size: 1.25rem;
+        padding: 2rem;
+        background: var(--dark-surface);
+        border-radius: 1rem;
+        border: 2px dashed var(--glass-border);
+      }
+
+      /* Particle system */
+      .particle {
+        position: fixed;
+        pointer-events: none;
+        width: 10px;
+        height: 10px;
+        background: var(--primary-gold);
+        border-radius: 50%;
+        animation: particle 2s ease-out forwards;
         z-index: 100;
       }
 
-      @keyframes clickFade {
+      @keyframes particle {
         0% {
+          transform: translate(0, 0) scale(1);
           opacity: 1;
-          transform: translateY(0);
         }
         100% {
+          transform: translate(var(--x), var(--y)) scale(0);
           opacity: 0;
-          transform: translateY(-30px);
         }
       }
 
+      /* Image loading fallback */
+      .pig-image-error {
+        display: none;
+      }
+
+      /* Mobile Responsiveness */
       @media (max-width: 768px) {
-        .game-area {
-          grid-template-columns: 1fr;
+        .container {
+          padding: 0.75rem;
         }
 
-        .stats {
-          gap: 15px;
+        .stats-grid {
+          grid-template-columns: repeat(2, 1fr);
+          gap: 0.75rem;
         }
 
-        .stat {
-          padding: 10px 15px;
+        .stat-card {
+          padding: 1rem;
         }
 
-        h1 {
-          font-size: 2rem;
+        .stat-value {
+          font-size: 1.5rem;
+        }
+
+        .farm-area {
+          padding: 2rem 1rem;
+          min-height: 400px;
         }
 
         .pig {
           width: 150px;
           height: 150px;
-          font-size: 3rem;
         }
 
-        .farm {
-          padding: 20px;
+        .pig-value {
+          font-size: 2rem;
         }
+
+        .shop {
+          padding: 1.5rem;
+        }
+
+        .shop-item {
+          padding: 1rem;
+        }
+      }
+
+      /* Loading animation */
+      .loading {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: var(--dark-bg);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 9999;
+        animation: fadeOut 0.5s ease-out 1s forwards;
+      }
+
+      @keyframes fadeOut {
+        to {
+          opacity: 0;
+          pointer-events: none;
+        }
+      }
+
+      .loading-spinner {
+        width: 60px;
+        height: 60px;
+        border: 4px solid var(--glass-border);
+        border-top-color: var(--primary-pink);
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+      }
+
+      @keyframes spin {
+        to {
+          transform: rotate(360deg);
+        }
+      }
+
+      /* Smooth scrolling */
+      html {
+        scroll-behavior: smooth;
+      }
+
+      /* Custom scrollbar */
+      ::-webkit-scrollbar {
+        width: 10px;
+      }
+
+      ::-webkit-scrollbar-track {
+        background: var(--dark-surface);
+      }
+
+      ::-webkit-scrollbar-thumb {
+        background: var(--primary-pink);
+        border-radius: 5px;
+      }
+
+      ::-webkit-scrollbar-thumb:hover {
+        background: var(--primary-gold);
       }
     </style>
   </head>
   <body>
-    <div class="container">
-      <h1>🐷 Pig Farm Clicker 🐷</h1>
+    <div class="loading">
+      <div class="loading-spinner"></div>
+    </div>
 
-      <div class="stats">
-        <div class="stat">
-          <div>Coins</div>
-          <div class="stat-value" id="coins">0</div>
+    <div class="container">
+      <div class="header">
+        <h1>🐷 Pig Farm Clicker 🐷</h1>
+        <p class="subtitle">Click, Grow, Harvest, Repeat!</p>
+      </div>
+
+      <div class="stats-grid">
+        <div class="stat-card">
+          <div class="stat-label">Coins</div>
+          <div class="stat-value coins" id="coins">0</div>
         </div>
-        <div class="stat">
-          <div>Pigs Raised</div>
+        <div class="stat-card">
+          <div class="stat-label">Pigs Raised</div>
           <div class="stat-value" id="pigs-raised">0</div>
         </div>
-        <div class="stat">
-          <div>Pigs Harvested</div>
+        <div class="stat-card">
+          <div class="stat-label">Pigs Harvested</div>
           <div class="stat-value" id="pigs-harvested">0</div>
         </div>
-        <div class="stat">
-          <div>Total Clicks</div>
+        <div class="stat-card">
+          <div class="stat-label">Total Clicks</div>
           <div class="stat-value" id="total-clicks">0</div>
         </div>
       </div>
 
-      <div class="game-area">
-        <div class="farm">
+      <div class="game-grid">
+        <div class="farm-area">
           <div id="pig-area">
-            <div class="no-pig">No pig yet! Buy one from the shop →</div>
+            <div class="no-pig">🌾 No pig yet! Buy one from the shop → 🛒</div>
           </div>
         </div>
 
         <div class="shop">
-          <h3 style="color: #ff9800; margin-bottom: 15px">🛒 Shop</h3>
+          <h3 class="shop-header">🛒 Shop</h3>
 
           <div class="shop-item" id="buy-trash-pig">
-            <div class="item-name">Trash Pig</div>
-            <div class="item-price">Cost: FREE!</div>
+            <div class="item-header">
+              <div class="item-name">Runt Pig</div>
+              <div class="item-price">FREE!</div>
+            </div>
             <div class="item-description">
-              Scrawny pig. Starts at 1 coin, +1 per click.
+              A scrawny pig rescued from the trash. Starts at 1 coin, +1 per
+              click.
             </div>
           </div>
 
           <div class="shop-item" id="buy-basic-pig">
-            <div class="item-name">Basic Pig</div>
-            <div class="item-price">Cost: 10 coins</div>
+            <div class="item-header">
+              <div class="item-name">Basic Pig</div>
+              <div class="item-price">10 coins</div>
+            </div>
             <div class="item-description">
-              Standard pig. Starts at 5 coins, +2 per click.
+              Standard farm pig. Starts at 5 coins, +2 per click.
             </div>
           </div>
 
           <div class="shop-item" id="buy-premium-pig">
-            <div class="item-name">Premium Pig</div>
-            <div class="item-price">Cost: 50 coins</div>
+            <div class="item-header">
+              <div class="item-name">Premium Pig</div>
+              <div class="item-price">50 coins</div>
+            </div>
             <div class="item-description">
-              Quality pig. Starts at 15 coins, +5 per click.
+              Quality breed pig. Starts at 15 coins, +5 per click.
             </div>
           </div>
 
           <div class="shop-item" id="buy-golden-pig">
-            <div class="item-name">Golden Pig</div>
-            <div class="item-price">Cost: 200 coins</div>
+            <div class="item-header">
+              <div class="item-name">Golden Pig</div>
+              <div class="item-price">200 coins</div>
+            </div>
             <div class="item-description">
-              Luxury pig. Starts at 50 coins, +10 per click.
+              Legendary golden pig. Starts at 50 coins, +10 per click.
             </div>
           </div>
 
           <div class="shop-item" id="buy-auto-clicker">
-            <div class="item-name">Auto Clicker</div>
-            <div class="item-price">Cost: 100 coins</div>
+            <div class="item-header">
+              <div class="item-name">Auto Clicker</div>
+              <div class="item-price">100 coins</div>
+            </div>
             <div class="item-description">
               Automatically clicks your pig every 2 seconds.
             </div>
           </div>
 
           <div class="shop-item" id="upgrade-auto-clicker">
-            <div class="item-name">Upgrade Auto Clicker</div>
-            <div class="item-price">Cost: 300 coins</div>
-            <div class="item-description">Makes auto clickers 25% faster.</div>
+            <div class="item-header">
+              <div class="item-name">Upgrade Auto Clicker</div>
+              <div class="item-price">300 coins</div>
+            </div>
+            <div class="item-description">
+              Makes all auto clickers 25% faster.
+            </div>
           </div>
 
           <div class="auto-clickers">
             <div class="auto-clicker-status">
-              Auto Clickers: <span id="auto-clicker-count">0</span><br />
-              Speed: <span id="auto-clicker-speed">2.0s</span>
+              🤖 Auto Clickers: <span id="auto-clicker-count">0</span><br />
+              ⚡ Speed: <span id="auto-clicker-speed">2.0s</span>
             </div>
           </div>
         </div>
@@ -623,34 +873,39 @@
           this.autoClickers = 0;
           this.autoClickerSpeed = 2000;
           this.autoClickerUpgrades = 0;
+          this.autoClickerIntervals = [];
 
           this.pigTypes = {
             trash: {
               cost: 0,
               startValue: 1,
               clickValue: 1,
-              image: "trash.png",
+              image: "runt.png", // Updated to use custom art
+              emoji: "🐖",
               className: "trash",
             },
             basic: {
               cost: 10,
               startValue: 5,
               clickValue: 2,
-              image: "pig.png",
+              image: "pig.png", // Updated to use custom art
+              emoji: "🐷",
               className: "basic",
             },
             premium: {
               cost: 50,
               startValue: 15,
               clickValue: 5,
-              image: "premium.png",
+              image: "premium.png", // Updated to use custom art
+              emoji: "🐽",
               className: "premium",
             },
             golden: {
               cost: 200,
               startValue: 50,
               clickValue: 10,
-              image: "gold.png",
+              image: "gold.png", // Updated to use custom art
+              emoji: "🐷",
               className: "golden",
             },
           };
@@ -659,52 +914,63 @@
         }
 
         init() {
+          this.loadGame();
           this.updateUI();
           this.bindEvents();
-          this.startAutoClicker();
+          this.startAutoClickers();
+
+          // Remove loading screen
+          setTimeout(() => {
+            document.querySelector(".loading").style.display = "none";
+          }, 1500);
         }
 
         bindEvents() {
+          // Shop items
           document
             .getElementById("buy-trash-pig")
-            .addEventListener("click", () => {
-              this.buyPig("trash");
-            });
-
+            .addEventListener("click", () => this.buyPig("trash"));
           document
             .getElementById("buy-basic-pig")
-            .addEventListener("click", () => {
-              this.buyPig("basic");
-            });
-
+            .addEventListener("click", () => this.buyPig("basic"));
           document
             .getElementById("buy-premium-pig")
-            .addEventListener("click", () => {
-              this.buyPig("premium");
-            });
-
+            .addEventListener("click", () => this.buyPig("premium"));
           document
             .getElementById("buy-golden-pig")
-            .addEventListener("click", () => {
-              this.buyPig("golden");
-            });
-
+            .addEventListener("click", () => this.buyPig("golden"));
           document
             .getElementById("buy-auto-clicker")
-            .addEventListener("click", () => {
-              this.buyAutoClicker();
-            });
-
+            .addEventListener("click", () => this.buyAutoClicker());
           document
             .getElementById("upgrade-auto-clicker")
-            .addEventListener("click", () => {
-              this.upgradeAutoClicker();
-            });
+            .addEventListener("click", () => this.upgradeAutoClicker());
+
+          // Auto-save every 10 seconds
+          setInterval(() => this.saveGame(), 10000);
+
+          // Keyboard shortcuts
+          document.addEventListener("keydown", (e) => {
+            if (e.key === " " && this.currentPig) {
+              e.preventDefault();
+              const pigElement = document.getElementById("current-pig");
+              if (pigElement) {
+                const rect = pigElement.getBoundingClientRect();
+                this.clickPig({
+                  clientX: rect.left + rect.width / 2,
+                  clientY: rect.top + rect.height / 2,
+                });
+              }
+            }
+          });
         }
 
         buyPig(type) {
           const pigType = this.pigTypes[type];
-          if (this.currentPig || this.coins < pigType.cost) return;
+          if (this.currentPig || this.coins < pigType.cost) {
+            this.showNotification("Cannot buy pig!", "error");
+            return;
+          }
 
           this.coins -= pigType.cost;
           this.pigsRaised++;
@@ -716,33 +982,49 @@
 
           this.createPigElement();
           this.updateUI();
+          this.saveGame();
+          this.showNotification(
+            `${type.charAt(0).toUpperCase() + type.slice(1)} pig purchased!`,
+            "success"
+          );
         }
 
         createPigElement() {
           const pigType = this.pigTypes[this.currentPig.type];
           const pigArea = document.getElementById("pig-area");
 
+          // Create pig image element with fallback
+          const pigImageHTML = `
+            <img src="${pigType.image}" 
+                 alt="${this.currentPig.type} pig" 
+                 onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';" />
+            <span class="pig-emoji" style="display: none;">${pigType.emoji}</span>
+          `;
+
           pigArea.innerHTML = `
                     <div class="pig-container">
-                        <div class="pig-value value-low">💰 ${this.currentPig.value} coins</div>
-                        <div class="pig ${pigType.className} size-small glow-none" id="current-pig">
-                            <img src="${pigType.image}" alt="${this.currentPig.type} pig" onerror="this.style.display='none'; this.parentNode.innerHTML='🐷';">
+                        <div class="pig-value">💰 ${this.formatNumber(
+                          this.currentPig.value
+                        )} coins</div>
+                        <div class="pig ${pigType.className}" id="current-pig">
+                            ${pigImageHTML}
                         </div>
-                        <button class="kill-button value-low" id="kill-pig-btn">💀 KILL PIG 💀</button>
+                        <button class="kill-button" id="kill-pig-btn">
+                            💀 HARVEST PIG 💀
+                        </button>
                     </div>
                 `;
 
+          // Add event listeners
           document
             .getElementById("current-pig")
-            .addEventListener("click", (e) => {
-              this.clickPig(e);
-            });
-
+            .addEventListener("click", (e) => this.clickPig(e));
           document
             .getElementById("kill-pig-btn")
-            .addEventListener("click", () => {
-              this.killPig();
-            });
+            .addEventListener("click", () => this.killPig());
+
+          // Apply initial appearance
+          this.updatePigAppearance();
         }
 
         clickPig(event) {
@@ -752,11 +1034,19 @@
           this.currentPig.value += pigType.clickValue;
           this.totalClicks++;
 
-          // Update display with dynamic styling
+          // Update appearance
           this.updatePigAppearance();
 
           // Show click effect
           this.showClickEffect(event, `+${pigType.clickValue}`);
+
+          // Create particles
+          this.createParticles(event.clientX, event.clientY);
+
+          // Haptic feedback for mobile
+          if (window.navigator.vibrate) {
+            window.navigator.vibrate(10);
+          }
 
           this.updateUI();
         }
@@ -767,79 +1057,44 @@
           const valueElement = document.querySelector(".pig-value");
           const killButton = document.getElementById("kill-pig-btn");
 
+          if (!pigElement || !valueElement || !killButton) return;
+
           // Update value display
-          valueElement.textContent = `💰 ${value} coins`;
+          valueElement.textContent = `💰 ${this.formatNumber(value)} coins`;
 
-          // Remove all dynamic classes
-          const sizeClasses = [
-            "size-small",
-            "size-medium",
-            "size-large",
-            "size-huge",
-            "size-massive",
-          ];
-          const glowClasses = [
-            "glow-none",
-            "glow-weak",
-            "glow-medium",
-            "glow-strong",
-            "glow-intense",
-          ];
-          const valueClasses = [
-            "value-low",
-            "value-medium",
-            "value-high",
-            "value-extreme",
-            "value-insane",
-          ];
+          // Dynamic scaling based on value
+          let scale = 1 + Math.min(value / 500, 0.5);
+          pigElement.style.transform = `scale(${scale})`;
 
-          sizeClasses.forEach((cls) => pigElement.classList.remove(cls));
-          glowClasses.forEach((cls) => pigElement.classList.remove(cls));
-          valueClasses.forEach((cls) => {
-            valueElement.classList.remove(cls);
-            killButton.classList.remove(cls);
-          });
-
-          // Apply new classes based on value
-          let sizeClass, glowClass, valueClass;
-
-          if (value < 20) {
-            sizeClass = "size-small";
-            glowClass = "glow-none";
-            valueClass = "value-low";
-          } else if (value < 50) {
-            sizeClass = "size-medium";
-            glowClass = "glow-weak";
-            valueClass = "value-medium";
-          } else if (value < 100) {
-            sizeClass = "size-large";
-            glowClass = "glow-medium";
-            valueClass = "value-high";
-          } else if (value < 200) {
-            sizeClass = "size-huge";
-            glowClass = "glow-strong";
-            valueClass = "value-extreme";
+          // Update colors and effects based on value thresholds
+          if (value >= 500) {
+            valueElement.style.color = "#e91e63";
+            killButton.textContent = "👑 LEGENDARY HARVEST 👑";
+            killButton.style.background =
+              "linear-gradient(135deg, #4ade80, #22c55e)";
+          } else if (value >= 200) {
+            valueElement.style.color = "#f44336";
+            killButton.textContent = "💎 EPIC HARVEST 💎";
+            killButton.style.background =
+              "linear-gradient(135deg, #f59e0b, #f97316)";
+          } else if (value >= 100) {
+            valueElement.style.color = "#ff9800";
+            killButton.textContent = "🔥 MEGA HARVEST 🔥";
+            killButton.style.background =
+              "linear-gradient(135deg, #ef4444, #dc2626)";
+          } else if (value >= 50) {
+            valueElement.style.color = "#fbbf24";
+            killButton.textContent = "⚔️ HARVEST PIG ⚔️";
           } else {
-            sizeClass = "size-massive";
-            glowClass = "glow-intense";
-            valueClass = "value-insane";
+            valueElement.style.color = "#4ade80";
+            killButton.textContent = "💀 HARVEST PIG 💀";
           }
 
-          pigElement.classList.add(sizeClass, glowClass);
-          valueElement.classList.add(valueClass);
-          killButton.classList.add(valueClass);
-
-          // Update kill button text based on value
-          if (value < 20) {
-            killButton.textContent = "💀 KILL PIG 💀";
-          } else if (value < 50) {
-            killButton.textContent = "⚔️ HARVEST PIG ⚔️";
-          } else if (value < 100) {
-            killButton.textContent = "🔥 SLAUGHTER PIG 🔥";
-          } else if (value < 200) {
-            killButton.textContent = "💎 CASH IN BIG 💎";
-          } else {
-            killButton.textContent = "👑 LEGENDARY HARVEST 👑";
+          // Add glow effect for high values
+          if (value >= 100) {
+            pigElement.style.boxShadow = `0 0 ${
+              20 + value / 10
+            }px currentColor`;
           }
         }
 
@@ -849,13 +1104,33 @@
           effect.textContent = text;
           effect.style.left = event.clientX + "px";
           effect.style.top = event.clientY + "px";
-          effect.style.position = "fixed";
 
           document.body.appendChild(effect);
 
-          setTimeout(() => {
-            effect.remove();
-          }, 1000);
+          setTimeout(() => effect.remove(), 1000);
+        }
+
+        createParticles(x, y) {
+          for (let i = 0; i < 5; i++) {
+            const particle = document.createElement("div");
+            particle.className = "particle";
+            particle.style.left = x + "px";
+            particle.style.top = y + "px";
+            particle.style.setProperty(
+              "--x",
+              `${(Math.random() - 0.5) * 100}px`
+            );
+            particle.style.setProperty(
+              "--y",
+              `${(Math.random() - 0.5) * 100}px`
+            );
+            particle.style.backgroundColor = ["#4ade80", "#ec4899", "#fbbf24"][
+              Math.floor(Math.random() * 3)
+            ];
+
+            document.body.appendChild(particle);
+            setTimeout(() => particle.remove(), 2000);
+          }
         }
 
         killPig() {
@@ -865,13 +1140,16 @@
           this.coins += value;
           this.pigsHarvested++;
 
-          this.showDeathMessage(`💀 HARVESTED FOR ${value} COINS! 💀`);
+          this.showDeathMessage(
+            `💰 HARVESTED FOR ${this.formatNumber(value)} COINS! 💰`
+          );
 
           this.currentPig = null;
           document.getElementById("pig-area").innerHTML =
-            '<div class="no-pig">Pig harvested! Buy a new one from the shop →</div>';
+            '<div class="no-pig">🌾 Pig harvested! Buy a new one from the shop → 🛒</div>';
 
           this.updateUI();
+          this.saveGame();
         }
 
         showDeathMessage(message) {
@@ -880,9 +1158,43 @@
           messageElement.textContent = message;
           document.body.appendChild(messageElement);
 
+          // Confetti effect
+          this.createConfetti();
+
           setTimeout(() => {
-            messageElement.remove();
-          }, 3000);
+            messageElement.classList.add("death-fade-out");
+            setTimeout(() => messageElement.remove(), 500);
+          }, 2000);
+        }
+
+        createConfetti() {
+          const colors = [
+            "#4ade80",
+            "#ec4899",
+            "#fbbf24",
+            "#3b82f6",
+            "#8b5cf6",
+          ];
+          for (let i = 0; i < 30; i++) {
+            setTimeout(() => {
+              const confetti = document.createElement("div");
+              confetti.className = "particle";
+              confetti.style.left = Math.random() * window.innerWidth + "px";
+              confetti.style.top = window.innerHeight / 2 + "px";
+              confetti.style.setProperty(
+                "--x",
+                `${(Math.random() - 0.5) * 300}px`
+              );
+              confetti.style.setProperty("--y", `${Math.random() * -300}px`);
+              confetti.style.backgroundColor =
+                colors[Math.floor(Math.random() * colors.length)];
+              confetti.style.width = "15px";
+              confetti.style.height = "15px";
+
+              document.body.appendChild(confetti);
+              setTimeout(() => confetti.remove(), 2000);
+            }, i * 30);
+          }
         }
 
         buyAutoClicker() {
@@ -891,6 +1203,11 @@
             this.coins -= cost;
             this.autoClickers++;
             this.updateUI();
+            this.saveGame();
+            this.showNotification("Auto Clicker purchased!", "success");
+            this.restartAutoClickers();
+          } else {
+            this.showNotification("Not enough coins!", "error");
           }
         }
 
@@ -904,39 +1221,103 @@
               2000 - this.autoClickerUpgrades * 375
             );
             this.updateUI();
+            this.saveGame();
+            this.showNotification("Auto Clickers upgraded!", "success");
+            this.restartAutoClickers();
+          } else {
+            this.showNotification("Cannot upgrade!", "error");
           }
         }
 
-        startAutoClicker() {
-          setInterval(() => {
-            if (this.autoClickers > 0 && this.currentPig) {
-              // Simulate a click on the pig
-              const pigElement = document.getElementById("current-pig");
-              if (pigElement) {
-                const rect = pigElement.getBoundingClientRect();
-                const fakeEvent = {
-                  clientX: rect.left + rect.width / 2,
-                  clientY: rect.top + rect.height / 2,
-                };
-                this.clickPig(fakeEvent);
+        startAutoClickers() {
+          // Clear existing intervals
+          this.autoClickerIntervals.forEach((interval) =>
+            clearInterval(interval)
+          );
+          this.autoClickerIntervals = [];
+
+          // Create new intervals for each auto clicker
+          for (let i = 0; i < this.autoClickers; i++) {
+            const interval = setInterval(() => {
+              if (this.currentPig) {
+                const pigElement = document.getElementById("current-pig");
+                if (pigElement) {
+                  const rect = pigElement.getBoundingClientRect();
+                  this.clickPig({
+                    clientX:
+                      rect.left + rect.width / 2 + (Math.random() - 0.5) * 50,
+                    clientY:
+                      rect.top + rect.height / 2 + (Math.random() - 0.5) * 50,
+                  });
+                }
               }
-            }
-          }, this.autoClickerSpeed);
+            }, this.autoClickerSpeed);
+            this.autoClickerIntervals.push(interval);
+          }
+        }
+
+        restartAutoClickers() {
+          this.startAutoClickers();
+        }
+
+        showNotification(message, type = "info") {
+          const notification = document.createElement("div");
+          notification.style.cssText = `
+                    position: fixed;
+                    top: 20px;
+                    right: 20px;
+                    padding: 1rem 1.5rem;
+                    border-radius: 0.5rem;
+                    color: white;
+                    font-weight: 600;
+                    z-index: 1000;
+                    animation: slideIn 0.3s ease-out;
+                    box-shadow: 0 5px 20px rgba(0, 0, 0, 0.3);
+                `;
+
+          if (type === "success") {
+            notification.style.background =
+              "linear-gradient(135deg, #4ade80, #22c55e)";
+          } else if (type === "error") {
+            notification.style.background =
+              "linear-gradient(135deg, #ef4444, #dc2626)";
+          } else {
+            notification.style.background =
+              "linear-gradient(135deg, #3b82f6, #2563eb)";
+          }
+
+          notification.textContent = message;
+          document.body.appendChild(notification);
+
+          setTimeout(() => {
+            notification.style.animation = "slideOut 0.3s ease-out forwards";
+            setTimeout(() => notification.remove(), 300);
+          }, 2000);
+        }
+
+        formatNumber(num) {
+          if (num >= 1000000) return (num / 1000000).toFixed(1) + "M";
+          if (num >= 1000) return (num / 1000).toFixed(1) + "K";
+          return num.toString();
         }
 
         updateUI() {
-          document.getElementById("coins").textContent = this.coins;
-          document.getElementById("pigs-raised").textContent = this.pigsRaised;
+          // Update stats
+          document.getElementById("coins").textContent = this.formatNumber(
+            this.coins
+          );
+          document.getElementById("pigs-raised").textContent =
+            this.formatNumber(this.pigsRaised);
           document.getElementById("pigs-harvested").textContent =
-            this.pigsHarvested;
+            this.formatNumber(this.pigsHarvested);
           document.getElementById("total-clicks").textContent =
-            this.totalClicks;
+            this.formatNumber(this.totalClicks);
           document.getElementById("auto-clicker-count").textContent =
             this.autoClickers;
           document.getElementById("auto-clicker-speed").textContent =
             (this.autoClickerSpeed / 1000).toFixed(1) + "s";
 
-          // Update shop affordability and disable items when pig exists
+          // Update shop affordability
           this.updateShopItem(
             "buy-trash-pig",
             this.pigTypes.trash.cost,
@@ -969,17 +1350,66 @@
           const element = document.getElementById(elementId);
           const affordable = this.coins >= cost;
 
-          if (affordable && canBuy) {
-            element.classList.add("affordable");
-            element.classList.remove("disabled");
-          } else {
-            element.classList.remove("affordable");
-            if (!canBuy) {
-              element.classList.add("disabled");
-            }
-          }
+          element.classList.toggle("affordable", affordable && canBuy);
+          element.classList.toggle("disabled", !canBuy);
+        }
+
+        saveGame() {
+          const gameState = {
+            coins: this.coins,
+            pigsRaised: this.pigsRaised,
+            pigsHarvested: this.pigsHarvested,
+            totalClicks: this.totalClicks,
+            currentPig: this.currentPig,
+            autoClickers: this.autoClickers,
+            autoClickerUpgrades: this.autoClickerUpgrades,
+            autoClickerSpeed: this.autoClickerSpeed,
+          };
+          // Note: localStorage is not available in this environment
+          // In a real implementation, you would save to localStorage:
+          // localStorage.setItem('pigClickerSave', JSON.stringify(gameState));
+        }
+
+        loadGame() {
+          // Note: localStorage is not available in this environment
+          // In a real implementation, you would load from localStorage:
+          // const saved = localStorage.getItem('pigClickerSave');
+          // if (saved) {
+          //     const gameState = JSON.parse(saved);
+          //     Object.assign(this, gameState);
+          //     if (this.currentPig) {
+          //         this.createPigElement();
+          //     }
+          // }
         }
       }
+
+      // Add slide animations
+      const style = document.createElement("style");
+      style.textContent = `
+            @keyframes slideIn {
+                from {
+                    transform: translateX(100%);
+                    opacity: 0;
+                }
+                to {
+                    transform: translateX(0);
+                    opacity: 1;
+                }
+            }
+            
+            @keyframes slideOut {
+                from {
+                    transform: translateX(0);
+                    opacity: 1;
+                }
+                to {
+                    transform: translateX(100%);
+                    opacity: 0;
+                }
+            }
+        `;
+      document.head.appendChild(style);
 
       // Start the game
       const game = new PigClickerGame();
